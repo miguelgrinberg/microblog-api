@@ -1,0 +1,47 @@
+{
+  "name": "Microblog API",
+  "description": "A modern Flask API.",
+  "repository": "https://github.com/miguelgrinberg/microblog-api",
+  "env": {
+    "DISABLE_AUTH": {
+      "required": false,
+      "description": "Set to any non-empty value to disable token authentication."
+    },
+    "MAIL_SERVER": {
+      "required": false,
+      "description": "An email server to use when sending emails. For SendGrid, use \"smtp.sendgrid.net\". For Gmail use \"smtp.googlemail.com\"."
+    },
+    "MAIL_PORT": {
+      "required": false,
+      "description": "The port in which the email server listens for clients. For SendGrid or Gmail, use 587."
+    },
+    "MAIL_USE_TLS": {
+      "required": false,
+      "description": "Set to any non-empty string to send emails via TLS. Required for both SendGrid and Gmail."
+    },
+    "MAIL_USERNAME": {
+      "required": false,
+      "description": "The username for the email sender's account, if required by the server. For SendGrid, use \"apikey\". For Gmail, use your Google username."
+    },
+    "MAIL_PASSWORD": {
+      "required": false,
+      "description": "The password for the email sender's account, if required by the server. For SendGrid, use your API Key. For Gmail, use your Google password (you will need to allow less secure apps in your Google account settings)."
+    },
+    "MAIL_DEFAULT_SENDER": {
+      "required": false,
+      "description": "The sender that appears in all emails sent by the application."
+    },
+    "SECRET_KEY": {
+      "description": "A secret key used to sign tokens.",
+      "generator": "secret"
+    }
+  },
+  "addons": [
+    {
+      "plan": "heroku-postgresql:hobby-dev"
+    }
+  ],
+  "scripts": {
+    "postdeploy": "bash -c \"pip install psycopg2-binary && flask db upgrade && flask fake users 10 && flask fake posts 100\""
+  }
+}

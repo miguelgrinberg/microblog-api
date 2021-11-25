@@ -1,0 +1,18 @@
+version: '3'
+services:
+  microblog-api:
+    build: .
+    command: ./boot.sh
+    image: microblog-api
+    ports:
+      - "5000:5000"
+    volumes:
+      - type: volume
+        source: data
+        target: /data
+    env_file: .env
+    environment:
+      DATABASE_URL: sqlite:////data/db.sqlite
+    restart: always
+volumes:
+  data:

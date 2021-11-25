@@ -1,0 +1,13 @@
+Dear {{ username }},
+
+To reset your password click on the following link:
+
+{{ url }}
+
+If you have not requested a password reset simply ignore this message.
+
+Sincerely,
+
+The Microblog Team
+
+Note: replies to this email address are not monitored.
