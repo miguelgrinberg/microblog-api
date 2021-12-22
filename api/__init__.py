@@ -93,6 +93,39 @@ When the user clicks on the password reset link, the client application must
 capture the `token` query string argument and send it in a `PUT` request to
 `/api/tokens/reset`, along with the new password chosen by the user.
 
+## Pagination
+
+API endpoints that return collections of resources, such as the users or posts,
+implement pagination, and the client must use query string arguments to specify
+the range of items to return.
+
+The number of items to return is specified by the `limit` argument, which is
+optional. If not specified, the server sets the limit to a reasonable value for
+the endpoint. If the limit is too large, the server may decide to use a lower
+value instead. The following example shows how to request the first 10 users:
+
+    http://localhost:5000/api/users?limit=10
+
+The `offset` argument is used to specify the zero-based index of the first item
+to return. If not given, the server sets the offset to 0. The following example
+shows how to request the second page of users with a page size of 10:
+
+    http://localhost:5000/api/users?limit=10&offset=10
+
+Sometimes paginating with the `offset` argument can be inconvenient, such as
+with collections where new elements are not always inserted at the end of the
+list. As an alternative to `offset`, the `after` argument can be used to set
+the start item to the item after the one specified. This API supports `after`
+for collections of blog posts, which are sorted by their publication time in
+descending order, and for collections of users, which are sorted by their
+username in ascending order. For blog posts, the `after` argument must be set
+to a date and time specification in ISO 8601 format, such as
+`2020-01-01T00:00:00Z`. For users, the `after` argument must be set to a
+string. Examples:
+
+    http://localhost:5000/api/posts?limit=10&after=2021-01-01T00:00:00
+    http://localhost:5000/api/users/me/followers?limit=10&after=diana
+
 ## Errors
 
 All errors returned by this API use the following JSON structure:
