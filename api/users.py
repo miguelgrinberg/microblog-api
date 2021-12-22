@@ -65,16 +65,6 @@ def put(data):
     return user
 
 
-@users.route('/users/<int:id>/following', methods=['GET'])
-@authenticate(token_auth)
-@paginated_response(users_schema)
-@other_responses({404: 'User not found'})
-def following(id):
-    """Retrieve the users this user is following"""
-    user = db.session.get(User, id) or abort(404)
-    return user.following_select()
-
-
 @users.route('/users/me/following/<int:id>', methods=['POST'])
 @authenticate(token_auth)
 @response(EmptySchema, status_code=204,
@@ -105,9 +95,19 @@ def unfollow(id):
     return {}
 
 
+@users.route('/users/<int:id>/following', methods=['GET'])
+@authenticate(token_auth)
+@paginated_response(users_schema, order_by=User.username)
+@other_responses({404: 'User not found'})
+def following(id):
+    """Retrieve the users this user is following"""
+    user = db.session.get(User, id) or abort(404)
+    return user.following_select()
+
+
 @users.route('/users/me/following', methods=['GET'])
 @authenticate(token_auth)
-@paginated_response(users_schema)
+@paginated_response(users_schema, order_by=User.username)
 def my_following():
     """Retrieve the users the logged in user is following"""
     user = token_auth.current_user()['user']
@@ -116,7 +116,7 @@ def my_following():
 
 @users.route('/users/<int:id>/followers', methods=['GET'])
 @authenticate(token_auth)
-@paginated_response(users_schema)
+@paginated_response(users_schema, order_by=User.username)
 @other_responses({404: 'User not found'})
 def followers(id):
     """Retrieve the followers of the user"""
@@ -126,7 +126,7 @@ def followers(id):
 
 @users.route('/users/me/followers', methods=['GET'])
 @authenticate(token_auth)
-@paginated_response(users_schema)
+@paginated_response(users_schema, order_by=User.username)
 def my_followers():
     """Retrieve the followers of the logged in user"""
     user = token_auth.current_user()['user']

@@ -6,6 +6,7 @@ from api.models import User, Post
 from api.schemas import PostSchema
 from api.auth import token_auth
 from api.decorators import paginated_response
+from api.schemas import DateTimePaginationSchema
 
 posts = Blueprint('posts', __name__)
 post_schema = PostSchema()
@@ -36,7 +37,9 @@ def get(id):
 
 
 @posts.route('/posts', methods=['GET'])
-@paginated_response(posts_schema)
+@paginated_response(posts_schema, order_by=Post.timestamp,
+                    order_direction='desc',
+                    pagination_schema=DateTimePaginationSchema)
 def all():
     """Retrieve all posts"""
     return Post.select()
@@ -44,7 +47,9 @@ def all():
 
 @posts.route('/users/<int:id>/posts', methods=['GET'])
 @authenticate(token_auth)
-@paginated_response(posts_schema)
+@paginated_response(posts_schema, order_by=Post.timestamp,
+                    order_direction='desc',
+                    pagination_schema=DateTimePaginationSchema)
 @other_responses({404: 'User not found'})
 def user_all(id):
     """Retrieve all posts from a user"""
@@ -83,7 +88,9 @@ def delete(id):
 
 @posts.route('/posts/timeline', methods=['GET'])
 @authenticate(token_auth)
-@paginated_response(posts_schema, model_from_statement=Post)
+@paginated_response(posts_schema, order_by=Post.timestamp,
+                    order_direction='desc', model_from_statement=Post,
+                    pagination_schema=DateTimePaginationSchema)
 def timeline():
     """Retrieve the user's post timeline"""
     user = token_auth.current_user()['user']

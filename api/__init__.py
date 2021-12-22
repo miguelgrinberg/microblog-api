@@ -37,7 +37,7 @@ environment variables that are currently used:
 | `SECRET_KEY` | `top-secret!` | A secret key used when signing tokens. |
 | `DATABASE_URL`  | `sqlite:///db.sqlite` | The database URL, as defined by the [SQLAlchemy](https://docs.sqlalchemy.org/en/14/core/engines.html#database-urls) framework. |
 | `SQL_ECHO` | not defined | Whether to echo SQL statements to the console for debugging purposes. |
-| `DISABLE_AUTH` | not defined | Whether to disable authentication. When running with authentication disabled, the user is assumed to be logged as the first user in the database. |
+| `DISABLE_AUTH` | not defined | Whether to disable authentication. When running with authentication disabled, the user is assumed to be logged as the user with `id=1`, which must exist in the database. |
 | `ACCESS_TOKEN_EXPIRATION` | `60` (1 hour) | The number of minutes an access token is valid for. |
 | `REFRESH_TOKEN_EXPIRATION` | `1440` (24 hours) | The number of minutes a refresh token is valid for. |
 | `RESET_TOKEN_EXPIRATION` | `15` (15 minutes) | The number of minutes a reset token is valid for. |
@@ -80,10 +80,11 @@ response.
 
 ### Password Resets
 
-This API also supports a password reset flow, to help users who forget their
-passwords. To issue a password request, the client must send a `POST` request
-to `/api/tokens/reset`, passing the user's email in the body of the request.
-The user will receive a password reset link by email, which is the request's
+This API supports a password reset flow, to help users who forget their
+passwords regain access to their accounts. To issue a password reset request,
+the client must send a `POST` request to `/api/tokens/reset`, passing the
+user's email in the body of the request. The user will receive a password reset
+link by email, which is the request's
 [Referrer](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer)
 URL, with an added `token` query string argument set to an email reset token,
 with a validity of 15 minutes.
@@ -115,7 +116,6 @@ containing a detailed list of validation errors found in the submitted request:
     "errors": [ <error details>, ... ]
 }
 ```
-
 """  # noqa: E501
 
 from api.app import create_app, db, ma  # noqa: F401

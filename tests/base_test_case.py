@@ -8,7 +8,7 @@ class TestConfig(Config):
     SERVER_NAME = 'localhost:5000'
     TESTING = True
     DISABLE_AUTH = True
-    SQLALCHEMY_DATABASE_URI = 'sqlite://'
+    ALCHEMICAL_DATABASE_URL = 'sqlite://'
 
 
 class TestConfigWithAuth(TestConfig):
