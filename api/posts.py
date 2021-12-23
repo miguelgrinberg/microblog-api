@@ -86,12 +86,23 @@ def delete(id):
     return '', 204
 
 
-@posts.route('/posts/timeline', methods=['GET'])
+@posts.route('/users/<int:id>/timeline', methods=['GET'])
 @authenticate(token_auth)
 @paginated_response(posts_schema, order_by=Post.timestamp,
                     order_direction='desc', model_from_statement=Post,
                     pagination_schema=DateTimePaginationSchema)
-def timeline():
+def timeline(id):
     """Retrieve the user's post timeline"""
+    user = db.session.get(User, id) or abort(404)
+    return user.followed_posts_select().order_by(Post.timestamp.desc())
+
+
+@posts.route('/users/me/timeline', methods=['GET'])
+@authenticate(token_auth)
+@paginated_response(posts_schema, order_by=Post.timestamp,
+                    order_direction='desc', model_from_statement=Post,
+                    pagination_schema=DateTimePaginationSchema)
+def my_timeline():
+    """Retrieve the logged in user's post timeline"""
     user = token_auth.current_user()['user']
     return user.followed_posts_select().order_by(Post.timestamp.desc())
