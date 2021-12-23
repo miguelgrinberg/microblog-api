@@ -1,4 +1,4 @@
-from marshmallow import validates_schema, ValidationError
+from marshmallow import validates_schema, ValidationError, post_dump
 from api import ma
 from api.models import User, Post
 
@@ -74,6 +74,12 @@ class UserSchema(ma.SQLAlchemySchema):
     posts_url = ma.URLFor('posts.user_all', values={'id': '<id>'},
                           dump_only=True)
 
+    @post_dump
+    def fix_timestamp(self, data, **kwargs):
+        data['first_seen'] += 'Z'
+        data['last_seen'] += 'Z'
+        return data
+
 
 class PostSchema(ma.SQLAlchemySchema):
     class Meta:
@@ -87,6 +93,10 @@ class PostSchema(ma.SQLAlchemySchema):
     timestamp = ma.auto_field(dump_only=True)
     author = ma.Nested(UserSchema, dump_only=True)
 
+    @post_dump
+    def fix_datetimes(self, data, **kwargs):
+        data['timestamp'] += 'Z'
+        return data
 
 class TokenSchema(ma.Schema):
     class Meta:
