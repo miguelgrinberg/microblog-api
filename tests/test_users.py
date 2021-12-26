@@ -69,7 +69,6 @@ class UserTests(BaseTestCase):
             'email': 'susan@example.com',
             'password': 'dog',
         })
-        print(rv.json);
         assert rv.status_code == 201
         id = rv.json['id']
 

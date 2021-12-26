@@ -37,6 +37,7 @@ def get(id):
 
 
 @posts.route('/posts', methods=['GET'])
+@authenticate(token_auth)
 @paginated_response(posts_schema, order_by=Post.timestamp,
                     order_direction='desc',
                     pagination_schema=DateTimePaginationSchema)
