@@ -1,5 +1,6 @@
-from marshmallow import validates_schema, ValidationError, post_dump
-from api import ma
+from marshmallow import validate, validates, validates_schema, \
+    ValidationError, post_dump
+from api import ma, db
 from api.models import User, Post
 
 paginated_schema_cache = {}
@@ -64,15 +65,23 @@ class UserSchema(ma.SQLAlchemySchema):
 
     id = ma.auto_field(dump_only=True)
     url = ma.String(dump_only=True)
-    username = ma.auto_field(required=True)
-    email = ma.auto_field(required=True)
-    password = ma.String(required=True, load_only=True)
+    username = ma.auto_field(required=True,
+                             validate=validate.Length(min=3, max=64))
+    email = ma.auto_field(required=True, validate=[validate.Length(max=120),
+                                                   validate.Email()])
+    password = ma.String(required=True, load_only=True,
+                         validate=validate.Length(min=3))
     avatar_url = ma.String(dump_only=True)
     about_me = ma.auto_field()
     first_seen = ma.auto_field(dump_only=True)
     last_seen = ma.auto_field(dump_only=True)
     posts_url = ma.URLFor('posts.user_all', values={'id': '<id>'},
                           dump_only=True)
+
+    @validates('username')
+    def validate_username(self, value):
+        if db.session.scalar(User.select().filter_by(username=value)):
+            raise ValidationError('Use a different username.')
 
     @post_dump
     def fix_timestamp(self, data, **kwargs):
@@ -97,6 +106,7 @@ class PostSchema(ma.SQLAlchemySchema):
     def fix_datetimes(self, data, **kwargs):
         data['timestamp'] += 'Z'
         return data
+
 
 class TokenSchema(ma.Schema):
     class Meta:
