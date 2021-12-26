@@ -62,7 +62,7 @@ class PostTests(BaseTestCase):
         rv = self.client.get(f'/api/posts/{id}')
         assert rv.status_code == 404
 
-    def test_post_timeline(self):
+    def test_post_feed(self):
         user1 = db.session.get(User, 1)
         user2 = User(username='susan', email='susan@example.com',
                      password='dog')
@@ -75,8 +75,8 @@ class PostTests(BaseTestCase):
         db.session.add_all([post1, post2, post3])
         db.session.commit()
 
-        rv1 = self.client.get('/api/users/me/timeline')
-        rv2 = self.client.get('/api/users/1/timeline')
+        rv1 = self.client.get('/api/users/me/feed')
+        rv2 = self.client.get('/api/users/1/feed')
         for rv in [rv1, rv2]:
             assert rv.status_code == 200
             assert rv.json['pagination']['total'] == 3
