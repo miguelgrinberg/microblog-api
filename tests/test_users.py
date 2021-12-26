@@ -2,6 +2,25 @@ from tests.base_test_case import BaseTestCase
 
 
 class UserTests(BaseTestCase):
+    def test_create_user(self):
+        rv = self.client.post('/api/users', json={
+            'username': 'user',
+            'email': 'user@example.com',
+            'password': 'dog'
+        })
+        assert rv.status_code == 201
+        user_id = rv.json['id']
+        rv = self.client.post('/api/users', json={
+            'username': 'user',
+            'email': 'user@example.com',
+            'password': 'dog'
+        })
+        assert rv.status_code == 400
+        rv = self.client.get(f'/api/users/{user_id}')
+        assert rv.status_code == 200
+        assert rv.json['username'] == 'user'
+        assert rv.json['email'] == 'user@example.com'
+
     def test_get_users(self):
         rv = self.client.get('/api/users')
         assert rv.status_code == 200
@@ -50,6 +69,7 @@ class UserTests(BaseTestCase):
             'email': 'susan@example.com',
             'password': 'dog',
         })
+        print(rv.json);
         assert rv.status_code == 201
         id = rv.json['id']
 

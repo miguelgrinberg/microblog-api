@@ -29,7 +29,7 @@ class AuthTests(BaseTestCase):
         assert rv.status_code == 401
 
     def test_refresh_token(self):
-        rv = self.client.post('/api/tokens', auth=('test', 'foo'))
+        rv = self.client.post('/api/tokens', auth=('test@example.com', 'foo'))
         assert rv.status_code == 200
         access_token = rv.json['access_token']
         refresh_token = rv.json['refresh_token']
