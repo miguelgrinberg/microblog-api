@@ -106,10 +106,11 @@ class User(Updateable, db.Model):
         )
 
     @staticmethod
-    def _verify_jwt(token_type, token):
+    def _verify_jwt(token_type, token, verify_exp=True):
         try:
             data = jwt.decode(token, current_app.config['SECRET_KEY'],
-                              algorithms=['HS256'])
+                              algorithms=['HS256'],
+                              options={'verify_exp': verify_exp})
         except jwt.PyJWTError:
             return
         if data.get('type') != token_type:
@@ -142,11 +143,12 @@ class User(Updateable, db.Model):
         refresh_data = User._verify_jwt('refresh', refresh_token) or {}
         refresh_user_id = refresh_data.pop('user_id', None)
         refresh_secret = refresh_data.pop('secret', None)
-        access_data = User._verify_jwt('access', access_token) or {}
+        access_data = User._verify_jwt('access', access_token,
+                                       verify_exp=False) or {}
         access_user_id = access_data.pop('user_id', None)
         access_secret = access_data.pop('secret', None)
-        if refresh_user_id != access_user_id or \
-                refresh_secret != access_secret:
+        if refresh_user_id is None or refresh_user_id != access_user_id or \
+                refresh_secret is None or refresh_secret != access_secret:
             return
         return {'user': db.session.get(User, refresh_user_id),
                 **refresh_data}
