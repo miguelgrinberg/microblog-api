@@ -80,6 +80,8 @@ class UserSchema(ma.SQLAlchemySchema):
 
     @validates('username')
     def validate_username(self, value):
+        if not value[0].isalpha():
+            raise ValidationError('Username must start with a letter')
         if db.session.scalar(User.select().filter_by(username=value)):
             raise ValidationError('Use a different username.')
 

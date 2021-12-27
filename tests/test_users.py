@@ -21,6 +21,20 @@ class UserTests(BaseTestCase):
         assert rv.json['username'] == 'user'
         assert rv.json['email'] == 'user@example.com'
 
+    def test_create_invalid_user(self):
+        rv = self.client.post('/api/users', json={
+            'username': '1user',
+            'email': 'user@example.com',
+            'password': 'dog'
+        })
+        assert rv.status_code == 400
+        rv = self.client.post('/api/users', json={
+            'username': '',
+            'email': 'user@example.com',
+            'password': 'dog'
+        })
+        assert rv.status_code == 400
+
     def test_get_users(self):
         rv = self.client.get('/api/users')
         assert rv.status_code == 200
@@ -32,6 +46,13 @@ class UserTests(BaseTestCase):
     def test_get_user(self):
         rv = self.client.get('/api/users/1')
         assert rv.status_code == 200
+        assert rv.json['id'] == 1
+        assert rv.json['username'] == 'test'
+        assert rv.json['email'] == 'test@example.com'
+        assert 'password' not in rv.json
+        rv = self.client.get('/api/users/test')
+        assert rv.status_code == 200
+        assert rv.json['id'] == 1
         assert rv.json['username'] == 'test'
         assert rv.json['email'] == 'test@example.com'
         assert 'password' not in rv.json

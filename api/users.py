@@ -42,6 +42,16 @@ def get(id):
     return db.session.get(User, id) or abort(404)
 
 
+@users.route('/users/<username>', methods=['GET'])
+@authenticate(token_auth)
+@response(user_schema)
+@other_responses({404: 'User not found'})
+def get_by_username(username):
+    """Retrieve a user by username"""
+    return db.session.scalar(User.select().filter_by(username=username)) or \
+        abort(404)
+
+
 @users.route('/users/me', methods=['GET'])
 @authenticate(token_auth)
 @response(user_schema)
