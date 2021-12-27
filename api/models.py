@@ -183,7 +183,7 @@ class Post(Updateable, db.Model):
     __tablename__ = 'posts'
 
     id = sqla.Column(sqla.Integer, primary_key=True)
-    body = sqla.Column(sqla.String(280), nullable=False)
+    text = sqla.Column(sqla.String(280), nullable=False)
     timestamp = sqla.Column(sqla.DateTime, index=True, default=datetime.utcnow,
                             nullable=False)
     user_id = sqla.Column(sqla.Integer, sqla.ForeignKey(User.id), index=True)

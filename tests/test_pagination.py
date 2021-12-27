@@ -11,7 +11,7 @@ class PaginationTests(BaseTestCase):
         tm = datetime.utcnow()
         for i in range(105):
             tm -= timedelta(minutes=1)
-            post = Post(body=f'Post {i + 1}', author=user, timestamp=tm)
+            post = Post(text=f'Post {i + 1}', author=user, timestamp=tm)
             db.session.add(post)
         for i in range(26):
             follower = User(username=chr(ord('a') + i),
@@ -28,8 +28,8 @@ class PaginationTests(BaseTestCase):
         assert rv.json['pagination']['count'] == 25
         assert rv.json['pagination']['limit'] == 25
         assert len(rv.json['data']) == 25
-        assert rv.json['data'][0]['body'] == 'Post 1'
-        assert rv.json['data'][24]['body'] == 'Post 25'
+        assert rv.json['data'][0]['text'] == 'Post 1'
+        assert rv.json['data'][24]['text'] == 'Post 25'
 
     def test_pagination_page(self):
         rv = self.client.get('/api/posts?offset=30&limit=10')
@@ -39,8 +39,8 @@ class PaginationTests(BaseTestCase):
         assert rv.json['pagination']['count'] == 10
         assert rv.json['pagination']['limit'] == 10
         assert len(rv.json['data']) == 10
-        assert rv.json['data'][0]['body'] == 'Post 31'
-        assert rv.json['data'][9]['body'] == 'Post 40'
+        assert rv.json['data'][0]['text'] == 'Post 31'
+        assert rv.json['data'][9]['text'] == 'Post 40'
 
     def test_pagination_last(self):
         rv = self.client.get('/api/posts?offset=99')
@@ -50,8 +50,8 @@ class PaginationTests(BaseTestCase):
         assert rv.json['pagination']['count'] == 6
         assert rv.json['pagination']['limit'] == 25
         assert len(rv.json['data']) == 6
-        assert rv.json['data'][0]['body'] == 'Post 100'
-        assert rv.json['data'][5]['body'] == 'Post 105'
+        assert rv.json['data'][0]['text'] == 'Post 100'
+        assert rv.json['data'][5]['text'] == 'Post 105'
 
     def test_pagination_invalid(self):
         rv = self.client.get('/api/posts?offset=-2')
@@ -71,8 +71,8 @@ class PaginationTests(BaseTestCase):
         assert rv.json['pagination']['count'] == 5
         assert rv.json['pagination']['limit'] == 5
         assert len(rv.json['data']) == 5
-        assert rv.json['data'][0]['body'] == 'Post 17'
-        assert rv.json['data'][4]['body'] == 'Post 21'
+        assert rv.json['data'][0]['text'] == 'Post 17'
+        assert rv.json['data'][4]['text'] == 'Post 21'
 
     def test_pagination_large_per_page(self):
         rv = self.client.get('/api/posts?offset=37&limit=50')
@@ -82,8 +82,8 @@ class PaginationTests(BaseTestCase):
         assert rv.json['pagination']['count'] == 25
         assert rv.json['pagination']['limit'] == 25
         assert len(rv.json['data']) == 25
-        assert rv.json['data'][0]['body'] == 'Post 38'
-        assert rv.json['data'][24]['body'] == 'Post 62'
+        assert rv.json['data'][0]['text'] == 'Post 38'
+        assert rv.json['data'][24]['text'] == 'Post 62'
 
     def test_pagination_offset_and_after(self):
         rv = self.client.get('/api/posts?offset=37&after=2021-01-01T00:00:00')
@@ -103,8 +103,8 @@ class PaginationTests(BaseTestCase):
         assert rv.json['pagination']['count'] == 25
         assert rv.json['pagination']['limit'] == 25
         assert len(rv.json['data']) == 25
-        assert rv.json['data'][0]['body'] == 'Post 7'
-        assert rv.json['data'][24]['body'] == 'Post 31'
+        assert rv.json['data'][0]['text'] == 'Post 7'
+        assert rv.json['data'][24]['text'] == 'Post 31'
 
     def test_pagination_after_asc(self):
         rv = self.client.get('/api/users/1/followers?after=g')

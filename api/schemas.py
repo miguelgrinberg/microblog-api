@@ -98,7 +98,7 @@ class PostSchema(ma.SQLAlchemySchema):
 
     id = ma.auto_field(dump_only=True)
     url = ma.String(dump_only=True)
-    body = ma.auto_field(required=True)
+    text = ma.auto_field(required=True)
     timestamp = ma.auto_field(dump_only=True)
     author = ma.Nested(UserSchema, dump_only=True)
 

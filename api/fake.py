@@ -28,7 +28,7 @@ def posts(num):  # pragma: no cover
     users = db.session.scalars(User.select()).all()
     for i in range(num):
         user = random.choice(users)
-        post = Post(body=faker.paragraph(), author=user,
+        post = Post(text=faker.paragraph(), author=user,
                     timestamp=faker.date_time_this_year())
         db.session.add(post)
     db.session.commit()
