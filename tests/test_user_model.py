@@ -99,14 +99,14 @@ class UserModelTests(BaseTestCase):
         db.session.commit()
 
         # check the followed posts of each user
-        f1 = db.session.scalars(Post.select().from_statement(
-            u1.followed_posts_select().order_by(Post.timestamp.desc()))).all()
-        f2 = db.session.scalars(Post.select().from_statement(
-            u2.followed_posts_select().order_by(Post.timestamp.desc()))).all()
-        f3 = db.session.scalars(Post.select().from_statement(
-            u3.followed_posts_select().order_by(Post.timestamp.desc()))).all()
-        f4 = db.session.scalars(Post.select().from_statement(
-            u4.followed_posts_select().order_by(Post.timestamp.desc()))).all()
+        f1 = db.session.scalars(u1.followed_posts_select().order_by(
+            Post.timestamp.desc())).all()
+        f2 = db.session.scalars(u2.followed_posts_select().order_by(
+            Post.timestamp.desc())).all()
+        f3 = db.session.scalars(u3.followed_posts_select().order_by(
+            Post.timestamp.desc())).all()
+        f4 = db.session.scalars(u4.followed_posts_select().order_by(
+            Post.timestamp.desc())).all()
         assert f1 == [p2, p4, p1]
         assert f2 == [p2, p3]
         assert f3 == [p3, p4]

@@ -120,6 +120,7 @@ def follow(id):
     if user.is_following(followed_user):
         abort(409)
     user.follow(followed_user)
+    db.session.commit()
     return {}
 
 
@@ -135,6 +136,7 @@ def unfollow(id):
     if not user.is_following(unfollowed_user):
         abort(409)
     user.unfollow(unfollowed_user)
+    db.session.commit()
     return {}
 
 

@@ -90,9 +90,9 @@ def delete(id):
 @posts.route('/feed', methods=['GET'])
 @authenticate(token_auth)
 @paginated_response(posts_schema, order_by=Post.timestamp,
-                    order_direction='desc', model_from_statement=Post,
+                    order_direction='desc',
                     pagination_schema=DateTimePaginationSchema)
 def feed():
     """Retrieve the user's post feed"""
     user = token_auth.current_user()
-    return user.followed_posts_select().order_by(Post.timestamp.desc())
+    return user.followed_posts_select()

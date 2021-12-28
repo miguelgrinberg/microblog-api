@@ -6,8 +6,8 @@ from api.app import db
 from api.schemas import StringPaginationSchema, PaginatedCollection
 
 
-def paginated_response(schema, max_limit=25, model_from_statement=None,
-                       order_by=None, order_direction='asc',
+def paginated_response(schema, max_limit=25, order_by=None,
+                       order_direction='asc',
                        pagination_schema=StringPaginationSchema):
     def inner(f):
         @wraps(f)
@@ -47,8 +47,6 @@ def paginated_response(schema, max_limit=25, model_from_statement=None,
                     abort(400)
 
                 query = select_query.limit(limit).offset(offset)
-                if model_from_statement:
-                    query = model_from_statement.select().from_statement(query)
 
             data = db.session.scalars(query).all()
             return {'data': data, 'pagination': {

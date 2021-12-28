@@ -63,9 +63,10 @@ class User(Updateable, db.Model):
 
     def followed_posts_select(self):
         return Post.select().join(
-            followers, (followers.c.followed_id == Post.user_id)).where(
-                followers.c.follower_id == self.id).union(
-                    self.posts_select())
+            followers, (followers.c.followed_id == Post.user_id),
+            isouter=True).group_by(Post.id).filter(
+                sqla.or_(Post.author == self,
+                         followers.c.follower_id == self.id))
 
     def __repr__(self):  # pragma: no cover
         return '<User {}>'.format(self.username)
@@ -192,7 +193,7 @@ class Post(Updateable, db.Model):
     author = sqla_orm.relationship('User', back_populates='posts')
 
     def __repr__(self):  # pragma: no cover
-        return '<Post {}>'.format(self.body)
+        return '<Post {}>'.format(self.text)
 
     @property
     def url(self):
