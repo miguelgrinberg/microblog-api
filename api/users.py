@@ -4,14 +4,14 @@ from apifairy import authenticate, body, response
 
 from api import db
 from api.models import User
-from api.schemas import UserSchema, EmptySchema
+from api.schemas import UserSchema, UpdateUserSchema, EmptySchema
 from api.auth import token_auth
 from api.decorators import paginated_response
 
 users = Blueprint('users', __name__)
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
-update_user_schema = UserSchema(partial=True)
+update_user_schema = UpdateUserSchema(partial=True)
 
 
 @users.route('/users', methods=['POST'])

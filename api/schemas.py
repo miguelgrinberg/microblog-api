@@ -71,6 +71,7 @@ class UserSchema(ma.SQLAlchemySchema):
                                                    validate.Email()])
     password = ma.String(required=True, load_only=True,
                          validate=validate.Length(min=3))
+    old_password = ma.String(load_only=True, validate=validate.Length(min=3))
     avatar_url = ma.String(dump_only=True)
     about_me = ma.auto_field()
     first_seen = ma.auto_field(dump_only=True)
@@ -86,10 +87,14 @@ class UserSchema(ma.SQLAlchemySchema):
             raise ValidationError('Use a different username.')
 
     @post_dump
-    def fix_timestamp(self, data, **kwargs):
+    def fix_datetimes(self, data, **kwargs):
         data['first_seen'] += 'Z'
         data['last_seen'] += 'Z'
         return data
+
+
+class UpdateUserSchema(UserSchema):
+    old_password = ma.String(load_only=True, validate=validate.Length(min=3))
 
 
 class PostSchema(ma.SQLAlchemySchema):
