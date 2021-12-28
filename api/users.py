@@ -52,7 +52,7 @@ def get_by_username(username):
         abort(404)
 
 
-@users.route('/users/me', methods=['GET'])
+@users.route('/me', methods=['GET'])
 @authenticate(token_auth)
 @response(user_schema)
 def me():
@@ -60,7 +60,7 @@ def me():
     return token_auth.current_user()['user']
 
 
-@users.route('/users/me', methods=['PUT'])
+@users.route('/me', methods=['PUT'])
 @authenticate(token_auth)
 @body(update_user_schema)
 @response(user_schema)
@@ -75,7 +75,39 @@ def put(data):
     return user
 
 
-@users.route('/users/me/following/<int:id>', methods=['POST'])
+@users.route('/me/following', methods=['GET'])
+@authenticate(token_auth)
+@paginated_response(users_schema, order_by=User.username)
+def my_following():
+    """Retrieve the users the logged in user is following"""
+    user = token_auth.current_user()['user']
+    return user.following_select()
+
+
+@users.route('/me/followers', methods=['GET'])
+@authenticate(token_auth)
+@paginated_response(users_schema, order_by=User.username)
+def my_followers():
+    """Retrieve the followers of the logged in user"""
+    user = token_auth.current_user()['user']
+    return user.followers_select()
+
+
+@users.route('/me/following/<int:id>', methods=['GET'])
+@authenticate(token_auth)
+@response(EmptySchema, status_code=204,
+          description='User is followed.')
+@other_responses({404: 'User is not followed'})
+def is_followed(id):
+    """Check if a user is followed"""
+    user = token_auth.current_user()['user']
+    followed_user = db.session.get(User, id) or abort(404)
+    if not user.is_following(followed_user):
+        abort(404)
+    return {}
+
+
+@users.route('/me/following/<int:id>', methods=['POST'])
 @authenticate(token_auth)
 @response(EmptySchema, status_code=204,
           description='User followed successfully.')
@@ -90,7 +122,7 @@ def follow(id):
     return {}
 
 
-@users.route('/users/me/following/<int:id>', methods=['DELETE'])
+@users.route('/me/following/<int:id>', methods=['DELETE'])
 @authenticate(token_auth)
 @response(EmptySchema, status_code=204,
           description='User unfollowed successfully.')
@@ -115,15 +147,6 @@ def following(id):
     return user.following_select()
 
 
-@users.route('/users/me/following', methods=['GET'])
-@authenticate(token_auth)
-@paginated_response(users_schema, order_by=User.username)
-def my_following():
-    """Retrieve the users the logged in user is following"""
-    user = token_auth.current_user()['user']
-    return user.following_select()
-
-
 @users.route('/users/<int:id>/followers', methods=['GET'])
 @authenticate(token_auth)
 @paginated_response(users_schema, order_by=User.username)
@@ -131,13 +154,4 @@ def my_following():
 def followers(id):
     """Retrieve the followers of the user"""
     user = db.session.get(User, id) or abort(404)
-    return user.followers_select()
-
-
-@users.route('/users/me/followers', methods=['GET'])
-@authenticate(token_auth)
-@paginated_response(users_schema, order_by=User.username)
-def my_followers():
-    """Retrieve the followers of the logged in user"""
-    user = token_auth.current_user()['user']
     return user.followers_select()

@@ -46,7 +46,7 @@ class AuthTests(BaseTestCase):
         assert rv.status_code == 200
         assert rv.json['data'][0]['username'] == 'test'
 
-        rv = self.client.put('/api/users/me', headers={
+        rv = self.client.put('/api/me', headers={
             'Authorization': f'Bearer {token}'}, json={'password': 'bar'})
         assert rv.status_code == 403
 

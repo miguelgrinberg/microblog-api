@@ -58,14 +58,14 @@ class UserTests(BaseTestCase):
         assert 'password' not in rv.json
 
     def test_get_me(self):
-        rv = self.client.get('/api/users/me')
+        rv = self.client.get('/api/me')
         assert rv.status_code == 200
         assert rv.json['username'] == 'test'
         assert rv.json['email'] == 'test@example.com'
         assert 'password' not in rv.json
 
     def test_edit_me(self):
-        rv = self.client.put('/api/users/me', json={
+        rv = self.client.put('/api/me', json={
             'about_me': 'I am testing',
         })
         assert rv.status_code == 200
@@ -75,12 +75,12 @@ class UserTests(BaseTestCase):
         assert 'password' not in rv.json
 
     def test_follow_unfollow(self):
-        rv = self.client.get('/api/users/me/following')
+        rv = self.client.get('/api/me/following')
         assert rv.status_code == 200
         assert rv.json['pagination']['total'] == 0
         assert rv.json['data'] == []
 
-        rv = self.client.get('/api/users/me/followers')
+        rv = self.client.get('/api/me/followers')
         assert rv.status_code == 200
         assert rv.json['pagination']['total'] == 0
         assert rv.json['data'] == []
@@ -93,27 +93,33 @@ class UserTests(BaseTestCase):
         assert rv.status_code == 201
         id = rv.json['id']
 
-        rv = self.client.post(f'/api/users/me/following/{id}')
+        rv = self.client.get(f'/api/me/following/{id}')
+        assert rv.status_code == 404
+
+        rv = self.client.post(f'/api/me/following/{id}')
         assert rv.status_code == 204
 
-        rv = self.client.post(f'/api/users/me/following/{id}')
+        rv = self.client.get(f'/api/me/following/{id}')
+        assert rv.status_code == 204
+
+        rv = self.client.post(f'/api/me/following/{id}')
         assert rv.status_code == 409
 
-        rv = self.client.get('/api/users/me/following')
+        rv = self.client.get('/api/me/following')
         assert rv.status_code == 200
         assert rv.json['pagination']['total'] == 1
         assert rv.json['data'][0]['username'] == 'susan'
 
-        rv = self.client.get('/api/users/me/followers')
+        rv = self.client.get('/api/me/followers')
         assert rv.status_code == 200
         assert rv.json['pagination']['total'] == 0
 
-        rv = self.client.get('/api/users/1/following')
+        rv = self.client.get('/api/me/following')
         assert rv.status_code == 200
         assert rv.json['pagination']['total'] == 1
         assert rv.json['data'][0]['username'] == 'susan'
 
-        rv = self.client.get('/api/users/1/followers')
+        rv = self.client.get('/api/me/followers')
         assert rv.status_code == 200
         assert rv.json['pagination']['total'] == 0
 
@@ -126,13 +132,13 @@ class UserTests(BaseTestCase):
         assert rv.json['pagination']['total'] == 1
         assert rv.json['data'][0]['username'] == 'test'
 
-        rv = self.client.delete(f'/api/users/me/following/{id}')
+        rv = self.client.delete(f'/api/me/following/{id}')
         assert rv.status_code == 204
 
-        rv = self.client.delete(f'/api/users/me/following/{id}')
+        rv = self.client.delete(f'/api/me/following/{id}')
         assert rv.status_code == 409
 
-        rv = self.client.get('/api/users/me/following')
+        rv = self.client.get('/api/me/following')
         assert rv.status_code == 200
         assert rv.json['pagination']['total'] == 0
         assert rv.json['data'] == []

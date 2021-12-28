@@ -75,17 +75,15 @@ class PostTests(BaseTestCase):
         db.session.add_all([post1, post2, post3])
         db.session.commit()
 
-        rv1 = self.client.get('/api/users/me/feed')
-        rv2 = self.client.get('/api/users/1/feed')
-        for rv in [rv1, rv2]:
-            assert rv.status_code == 200
-            assert rv.json['pagination']['total'] == 3
-            assert rv.json['data'][0]['text'] == 'Post 3'
-            assert rv.json['data'][0]['author']['username'] == 'susan'
-            assert rv.json['data'][1]['text'] == 'Post 2'
-            assert rv.json['data'][1]['author']['username'] == 'test'
-            assert rv.json['data'][2]['text'] == 'Post 1'
-            assert rv.json['data'][2]['author']['username'] == 'susan'
+        rv = self.client.get('/api/feed')
+        assert rv.status_code == 200
+        assert rv.json['pagination']['total'] == 3
+        assert rv.json['data'][0]['text'] == 'Post 3'
+        assert rv.json['data'][0]['author']['username'] == 'susan'
+        assert rv.json['data'][1]['text'] == 'Post 2'
+        assert rv.json['data'][1]['author']['username'] == 'test'
+        assert rv.json['data'][2]['text'] == 'Post 1'
+        assert rv.json['data'][2]['author']['username'] == 'susan'
 
     def test_permissions(self):
         user = User(username='susan', email='susan@example.com',
