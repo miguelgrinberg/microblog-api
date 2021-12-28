@@ -34,7 +34,7 @@ def verify_token(access_token):
     if current_app.config['DISABLE_AUTH']:
         user = db.session.get(User, 1)
         user.ping()
-        return {'type': 'access', 'user': user, 'fresh': True}
+        return user
     if access_token:
         return User.check_access_token(access_token)
 

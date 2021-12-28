@@ -18,8 +18,7 @@ token_schema = TokenSchema()
 @other_responses({401: 'Invalid username or password'})
 def new():
     """Create new access and refresh tokens"""
-    access_token, refresh_token = basic_auth.current_user().generate_tokens(
-        fresh=True)
+    access_token, refresh_token = basic_auth.current_user().generate_tokens()
     return {'access_token': access_token, 'refresh_token': refresh_token}
 
 
@@ -33,7 +32,7 @@ def refresh(args):
         args['refresh_token'], args['access_token'])
     if user is None:
         abort(401)
-    access_token, refresh_token = user['user'].generate_tokens(fresh=False)
+    access_token, refresh_token = user.generate_tokens()
     return {'access_token': access_token, 'refresh_token': refresh_token}
 
 

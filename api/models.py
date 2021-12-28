@@ -117,11 +117,11 @@ class User(Updateable, db.Model):
             return
         return data
 
-    def generate_tokens(self, fresh=False):
+    def generate_tokens(self):
         secret = secrets.token_urlsafe()
         access_token = self._generate_jwt(
             'access', current_app.config['ACCESS_TOKEN_EXPIRATION'],
-            user_id=self.id, fresh=fresh, secret=secret)
+            user_id=self.id, secret=secret)
         refresh_token = self._generate_jwt(
             'refresh', current_app.config['REFRESH_TOKEN_EXPIRATION'],
             user_id=self.id, secret=secret)
@@ -131,27 +131,26 @@ class User(Updateable, db.Model):
     def check_access_token(access_token):
         data = User._verify_jwt('access', access_token)
         if data:
-            user_id = data.pop('user_id')
+            user_id = data.get('user_id')
             user = db.session.get(User, user_id)
             if user:  # pragma: no branch
                 user.ping()
                 db.session.commit()
-                return {'user': user, **data}
+                return user
 
     @staticmethod
     def check_refresh_token(refresh_token, access_token):
         refresh_data = User._verify_jwt('refresh', refresh_token) or {}
-        refresh_user_id = refresh_data.pop('user_id', None)
-        refresh_secret = refresh_data.pop('secret', None)
+        refresh_user_id = refresh_data.get('user_id', None)
+        refresh_secret = refresh_data.get('secret', None)
         access_data = User._verify_jwt('access', access_token,
                                        verify_exp=False) or {}
-        access_user_id = access_data.pop('user_id', None)
-        access_secret = access_data.pop('secret', None)
+        access_user_id = access_data.get('user_id', None)
+        access_secret = access_data.get('secret', None)
         if refresh_user_id is None or refresh_user_id != access_user_id or \
                 refresh_secret is None or refresh_secret != access_secret:
             return
-        return {'user': db.session.get(User, refresh_user_id),
-                **refresh_data}
+        return db.session.get(User, refresh_user_id)
 
     def generate_reset_token(self):
         return self._generate_jwt(

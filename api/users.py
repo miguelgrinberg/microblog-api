@@ -57,7 +57,7 @@ def get_by_username(username):
 @response(user_schema)
 def me():
     """Retrieve the authenticated user"""
-    return token_auth.current_user()['user']
+    return token_auth.current_user()
 
 
 @users.route('/me', methods=['PUT'])
@@ -67,8 +67,9 @@ def me():
 @other_responses({403: 'Cannot use a refreshed token for this operation.'})
 def put(data):
     """Edit user information"""
-    user = token_auth.current_user()['user']
-    if 'password' in data and not token_auth.current_user()['fresh']:
+    user = token_auth.current_user()
+    if 'password' in data and ('old_password' not in data or
+                               not user.check_password(data['old_password'])):
         abort(403)
     user.update(data)
     db.session.commit()
@@ -80,7 +81,7 @@ def put(data):
 @paginated_response(users_schema, order_by=User.username)
 def my_following():
     """Retrieve the users the logged in user is following"""
-    user = token_auth.current_user()['user']
+    user = token_auth.current_user()
     return user.following_select()
 
 
@@ -89,7 +90,7 @@ def my_following():
 @paginated_response(users_schema, order_by=User.username)
 def my_followers():
     """Retrieve the followers of the logged in user"""
-    user = token_auth.current_user()['user']
+    user = token_auth.current_user()
     return user.followers_select()
 
 
@@ -100,7 +101,7 @@ def my_followers():
 @other_responses({404: 'User is not followed'})
 def is_followed(id):
     """Check if a user is followed"""
-    user = token_auth.current_user()['user']
+    user = token_auth.current_user()
     followed_user = db.session.get(User, id) or abort(404)
     if not user.is_following(followed_user):
         abort(404)
@@ -114,7 +115,7 @@ def is_followed(id):
 @other_responses({404: 'User not found', 409: 'User already followed.'})
 def follow(id):
     """Follow a user"""
-    user = token_auth.current_user()['user']
+    user = token_auth.current_user()
     followed_user = db.session.get(User, id) or abort(404)
     if user.is_following(followed_user):
         abort(409)
@@ -129,7 +130,7 @@ def follow(id):
 @other_responses({404: 'User not found', 409: 'User is not followed.'})
 def unfollow(id):
     """Unfollow a user"""
-    user = token_auth.current_user()['user']
+    user = token_auth.current_user()
     unfollowed_user = db.session.get(User, id) or abort(404)
     if not user.is_following(unfollowed_user):
         abort(409)

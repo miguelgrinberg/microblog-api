@@ -20,9 +20,9 @@ microblogging project:
 - Password recovery flow with reset emails
 - Post creation and deletion
 - Follow and unfollow users
-- Timeline with posts from followed users
-- Pagination of collections
-- Option to disable authentication
+- Feed with posts from followed users
+- Pagination
+- Option to disable authentication during development
 
 ## Configuration
 

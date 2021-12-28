@@ -20,7 +20,7 @@ update_post_schema = PostSchema(partial=True)
 @response(post_schema, 201)
 def new(args):
     """Create a new post"""
-    user = token_auth.current_user()['user']
+    user = token_auth.current_user()
     post = Post(author=user, **args)
     db.session.add(post)
     db.session.commit()
@@ -67,7 +67,7 @@ def user_all(id):
 def put(data, id):
     """Edit a post"""
     post = db.session.get(Post, id) or abort(404)
-    if post.author != token_auth.current_user()['user']:
+    if post.author != token_auth.current_user():
         abort(403)
     post.update(data)
     db.session.commit()
@@ -80,7 +80,7 @@ def put(data, id):
 def delete(id):
     """Delete a post"""
     post = db.session.get(Post, id) or abort(404)
-    if post.author != token_auth.current_user()['user']:
+    if post.author != token_auth.current_user():
         abort(403)
     db.session.delete(post)
     db.session.commit()
@@ -94,5 +94,5 @@ def delete(id):
                     pagination_schema=DateTimePaginationSchema)
 def feed():
     """Retrieve the user's post feed"""
-    user = token_auth.current_user()['user']
+    user = token_auth.current_user()
     return user.followed_posts_select().order_by(Post.timestamp.desc())
