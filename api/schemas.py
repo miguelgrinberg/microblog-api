@@ -1,6 +1,7 @@
 from marshmallow import validate, validates, validates_schema, \
     ValidationError, post_dump
 from api import ma, db
+from api.auth import token_auth
 from api.models import User, Post
 
 paginated_schema_cache = {}
@@ -96,6 +97,11 @@ class UserSchema(ma.SQLAlchemySchema):
 class UpdateUserSchema(UserSchema):
     old_password = ma.String(load_only=True, validate=validate.Length(min=3))
 
+    @validates('old_password')
+    def validate_old_password(self, value):
+        if not token_auth.current_user().check_password(value):
+            raise ValidationError('Password is incorrect')
+
 
 class PostSchema(ma.SQLAlchemySchema):
     class Meta:
@@ -127,7 +133,8 @@ class PasswordResetRequestSchema(ma.Schema):
     class Meta:
         ordered = True
 
-    email = ma.String(required=True)
+    email = ma.String(required=True, validate=[validate.Length(max=120),
+                                               validate.Email()])
 
 
 class PasswordResetSchema(ma.Schema):
@@ -135,4 +142,4 @@ class PasswordResetSchema(ma.Schema):
         ordered = True
 
     token = ma.String(required=True)
-    new_password = ma.String(required=True)
+    new_password = ma.String(required=True, validate=validate.Length(min=3))
