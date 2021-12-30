@@ -67,13 +67,9 @@ issued. When the access token is expired, the client can renew it using the
 refresh token. For this, the client must send a `PUT` request to the
 `/api/tokens` endpoint, passing both the expired access token and the still
 valid refresh token in the body of the request. The response to this request
-will include a new token pair. Refresh tokens have a default validity period of
-24 hours, and can only be used to renew the access token that was returned with
-it.
-
-A refreshed access token can be used exactly as an originally issued one, but
-refreshed tokens are restricted from performance sensitive operations such as
-changing the user's password for security purposes.
+will include a new pair of tokens. Refresh tokens have a default validity
+period of 3 days, and can only be used to renew the access token that was
+returned with it.
 
 All authentication failures are handled with a `401` status code in the
 response.
@@ -83,11 +79,12 @@ response.
 This API supports a password reset flow, to help users who forget their
 passwords regain access to their accounts. To issue a password reset request,
 the client must send a `POST` request to `/api/tokens/reset`, passing the
-user's email in the body of the request. The user will receive a password reset
-link by email, which is the request's
-[Referrer](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer)
-URL, with an added `token` query string argument set to an email reset token,
-with a validity of 15 minutes.
+user's email and the path to a callback URL in the body of the request. The
+user will receive a password reset link by email, which is formed with the
+scheme, hostname and port obtained from the request's
+[Referrer](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer),
+appended with the callback URL and a `token` query string argument set to an
+email reset token, with a validity of 15 minutes.
 
 When the user clicks on the password reset link, the client application must
 capture the `token` query string argument and send it in a `PUT` request to
@@ -125,6 +122,12 @@ string. Examples:
 
     http://localhost:5000/api/posts?limit=10&after=2021-01-01T00:00:00
     http://localhost:5000/api/users/me/followers?limit=10&after=diana
+
+The response body in a paginated request contains a `data` attribute that is
+set to the list of entities that are in the requested page. A `pagination`
+attribute is also included with `offset`, `limit`, `count` and `total`
+sub-attributes, which should enable the client to present pagination controls
+to the user.
 
 ## Errors
 
