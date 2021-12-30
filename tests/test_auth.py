@@ -46,10 +46,6 @@ class AuthTests(BaseTestCase):
         assert rv.status_code == 200
         assert rv.json['data'][0]['username'] == 'test'
 
-        rv = self.client.put('/api/me', headers={
-            'Authorization': f'Bearer {token}'}, json={'password': 'bar'})
-        assert rv.status_code == 403
-
     def test_refresh_token_failure(self):
         rv = self.client.post('/api/tokens', auth=('test', 'foo'))
         assert rv.status_code == 200
@@ -79,15 +75,19 @@ class AuthTests(BaseTestCase):
     def test_reset_password(self):
         with mock.patch('api.tokens.send_email') as send_email:
             rv = self.client.post('/api/tokens/reset', json={
-                'email': 'bad@example.com'})
+                'email': 'bad@example.com', 'callback_url': '/reset'
+            }, headers={'Referer': 'https://example.com/'})
             assert rv.status_code == 204
             rv = self.client.post('/api/tokens/reset', json={
-                'email': 'test@example.com'})
+                'email': 'test@example.com', 'callback_url': '/reset'
+            }, headers={'Referer': 'https://example.com/'})
             assert rv.status_code == 204
         send_email.assert_called_once()
         assert send_email.call_args[0] == (
             'test@example.com', 'Reset Your Password', 'reset')
         reset_token = send_email.call_args[1]['token']
+        reset_url = send_email.call_args[1]['url']
+        assert reset_url == 'https://example.com/reset?token=' + reset_token
 
         rv = self.client.put('/api/tokens/reset', json={
             'token': reset_token,

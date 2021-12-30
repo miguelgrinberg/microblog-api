@@ -74,6 +74,30 @@ class UserTests(BaseTestCase):
         assert rv.json['about_me'] == 'I am testing'
         assert 'password' not in rv.json
 
+    def test_edit_password(self):
+        rv = self.client.put('/api/me', json={
+            'password': 'bar',
+        })
+        assert rv.status_code == 400
+        rv = self.client.put('/api/me', json={
+            'old_password': 'foo1',
+            'password': 'bar',
+        })
+        assert rv.status_code == 400
+        rv = self.client.put('/api/me', json={
+            'old_password': 'foo',
+            'password': 'bar',
+        })
+        assert rv.status_code == 200
+        assert rv.json['username'] == 'test'
+        assert rv.json['email'] == 'test@example.com'
+        assert 'password' not in rv.json
+
+        rv = self.client.post('/api/tokens', auth=('test@example.com', 'foo'))
+        assert rv.status_code == 401
+        rv = self.client.post('/api/tokens', auth=('test@example.com', 'bar'))
+        assert rv.status_code == 200
+
     def test_follow_unfollow(self):
         rv = self.client.get('/api/me/following')
         assert rv.status_code == 200

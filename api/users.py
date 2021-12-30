@@ -70,7 +70,7 @@ def put(data):
     user = token_auth.current_user()
     if 'password' in data and ('old_password' not in data or
                                not user.check_password(data['old_password'])):
-        abort(403)
+        abort(400)
     user.update(data)
     db.session.commit()
     return user
