@@ -14,7 +14,7 @@ class Config:
     ACCESS_TOKEN_EXPIRATION = int(os.environ.get(
         'ACCESS_TOKEN_EXPIRATION', '60')) * 60  # 1 hour
     REFRESH_TOKEN_EXPIRATION =  int(os.environ.get(
-        'REFRESH_TOKEN_EXPIRATION', '1440')) * 60  # 24 hours
+        'REFRESH_TOKEN_EXPIRATION', '4320')) * 60  # 3 days
     RESET_TOKEN_EXPIRATION = int(os.environ.get(
         'RESET_TOKEN_EXPIRATION', '15')) * 60  # 15 minutes
 
