@@ -72,7 +72,6 @@ class UserSchema(ma.SQLAlchemySchema):
                                                    validate.Email()])
     password = ma.String(required=True, load_only=True,
                          validate=validate.Length(min=3))
-    old_password = ma.String(load_only=True, validate=validate.Length(min=3))
     avatar_url = ma.String(dump_only=True)
     about_me = ma.auto_field()
     first_seen = ma.auto_field(dump_only=True)
