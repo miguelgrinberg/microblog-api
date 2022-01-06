@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from api.app import db
 from api.models import User, Post
 from tests.base_test_case import BaseTestCase
@@ -69,9 +70,12 @@ class PostTests(BaseTestCase):
         db.session.add(user2)
         db.session.commit()
         user1.follow(user2)
-        post1 = Post(text='Post 1', author=user2)
-        post2 = Post(text='Post 2', author=user1)
-        post3 = Post(text='Post 3', author=user2)
+        now = datetime.utcnow()
+        post1 = Post(text='Post 1', author=user2,
+                     timestamp=now - timedelta(minutes=2))
+        post2 = Post(text='Post 2', author=user1,
+                     timestamp=now - timedelta(minutes=1))
+        post3 = Post(text='Post 3', author=user2, timestamp=now)
         db.session.add_all([post1, post2, post3])
         db.session.commit()
 
