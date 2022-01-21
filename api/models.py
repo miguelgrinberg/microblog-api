@@ -1,9 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from hashlib import md5
 import secrets
 from time import time
 
-from flask import current_app, url_for, abort
+from flask import current_app, url_for
 import jwt
 import sqlalchemy as sqla
 from sqlalchemy import orm as sqla_orm
@@ -26,6 +26,39 @@ followers = sqla.Table(
 )
 
 
+class Token(db.Model):
+    __tablename__ = 'tokens'
+
+    id = sqla.Column(sqla.Integer, primary_key=True)
+    access_token = sqla.Column(sqla.String(64), nullable=False, index=True)
+    access_expiration = sqla.Column(sqla.DateTime, nullable=False)
+    refresh_token = sqla.Column(sqla.String(64), nullable=False, index=True)
+    refresh_expiration = sqla.Column(sqla.DateTime, nullable=False)
+    user_id = sqla.Column(sqla.Integer, sqla.ForeignKey('users.id'),
+                          index=True)
+
+    user = sqla_orm.relationship('User', back_populates='tokens')
+
+    def generate(self):
+        self.access_token = secrets.token_urlsafe()
+        self.access_expiration = datetime.utcnow() + \
+            timedelta(minutes=current_app.config['ACCESS_TOKEN_MINUTES'])
+        self.refresh_token = secrets.token_urlsafe()
+        self.refresh_expiration = datetime.utcnow() + \
+            timedelta(days=current_app.config['REFRESH_TOKEN_DAYS'])
+
+    def expire(self):
+        self.access_expiration = datetime.utcnow()
+        self.refresh_expiration = datetime.utcnow()
+
+    @staticmethod
+    def clean():
+        """Remove any tokens that have been expired for more than a day."""
+        yesterday = datetime.utcnow() - timedelta(days=1)
+        db.session.execute(Token.delete().where(
+            Token.refresh_expiration < yesterday))
+
+
 class User(Updateable, db.Model):
     __tablename__ = 'users'
 
@@ -39,6 +72,8 @@ class User(Updateable, db.Model):
     first_seen = sqla.Column(sqla.DateTime, default=datetime.utcnow)
     last_seen = sqla.Column(sqla.DateTime, default=datetime.utcnow)
 
+    tokens = sqla_orm.relationship('Token', back_populates='user',
+                                   lazy='noload')
     posts = sqla_orm.relationship('Post', back_populates='author',
                                   lazy='noload')
     following = sqla_orm.relationship(
@@ -88,81 +123,62 @@ class User(Updateable, db.Model):
     def password(self, password):
         self.password_hash = generate_password_hash(password)
 
-    def check_password(self, password):
+    def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
 
     def ping(self):
         self.last_seen = datetime.utcnow()
 
+    def generate_auth_token(self):
+        token = Token(user=self)
+        token.generate()
+        return token
+
     @staticmethod
-    def _generate_jwt(token_type, expiration, **kwargs):
+    def verify_access_token(access_token, refresh_token=None):
+        token = db.session.scalar(Token.select().filter_by(
+            access_token=access_token))
+        if token:
+            if token.access_expiration > datetime.utcnow():
+                token.user.ping()
+                db.session.commit()
+                return token.user
+
+    @staticmethod
+    def verify_refresh_token(refresh_token, access_token):
+        token = db.session.scalar(Token.select().filter_by(
+            refresh_token=refresh_token, access_token=access_token))
+        if token:
+            if token.refresh_expiration > datetime.utcnow():
+                return token
+
+            # someone tried to refresh with an expired token
+            # revoke all tokens from this user as a precaution
+            token.user.revoke_all()
+            db.session.commit()
+
+    def revoke_all(self):
+        db.session.execute(Token.delete().where(Token.user == self))
+
+    def generate_reset_token(self):
         return jwt.encode(
             {
-                'type': token_type,
-                'exp': time() + expiration,
-                **kwargs
+                'exp': time() + current_app.config['RESET_TOKEN_MINUTES'] * 60,
+                'reset_email': self.email,
             },
             current_app.config['SECRET_KEY'],
             algorithm='HS256'
         )
 
     @staticmethod
-    def _verify_jwt(token_type, token, verify_exp=True):
+    def verify_reset_token(reset_token):
         try:
-            data = jwt.decode(token, current_app.config['SECRET_KEY'],
-                              algorithms=['HS256'],
-                              options={'verify_exp': verify_exp})
+            data = jwt.decode(reset_token, current_app.config['SECRET_KEY'],
+                              algorithms=['HS256'])
         except jwt.PyJWTError:
             return
-        if data.get('type') != token_type:
-            return
-        return data
-
-    def generate_tokens(self):
-        secret = secrets.token_urlsafe()
-        access_token = self._generate_jwt(
-            'access', current_app.config['ACCESS_TOKEN_EXPIRATION'],
-            user_id=self.id, secret=secret)
-        refresh_token = self._generate_jwt(
-            'refresh', current_app.config['REFRESH_TOKEN_EXPIRATION'],
-            user_id=self.id, secret=secret)
-        return access_token, refresh_token
-
-    @staticmethod
-    def check_access_token(access_token):
-        data = User._verify_jwt('access', access_token)
-        if data:
-            user_id = data.get('user_id')
-            user = db.session.get(User, user_id)
-            if user:  # pragma: no branch
-                user.ping()
-                db.session.commit()
-                return user
-
-    @staticmethod
-    def check_refresh_token(refresh_token, access_token):
-        refresh_data = User._verify_jwt('refresh', refresh_token) or {}
-        refresh_user_id = refresh_data.get('user_id', None)
-        refresh_secret = refresh_data.get('secret', None)
-        access_data = User._verify_jwt('access', access_token,
-                                       verify_exp=False) or {}
-        access_user_id = access_data.get('user_id', None)
-        access_secret = access_data.get('secret', None)
-        if refresh_user_id is None or refresh_user_id != access_user_id or \
-                refresh_secret is None or refresh_secret != access_secret:
-            return
-        return db.session.get(User, refresh_user_id)
-
-    def generate_reset_token(self):
-        return self._generate_jwt(
-            'reset', current_app.config['RESET_TOKEN_EXPIRATION'],
-            email=self.email)
-
-    @staticmethod
-    def check_reset_token(reset_token):
-        reset_data = User._verify_jwt('reset', reset_token)
         return db.session.scalar(User.select().filter_by(
-            email=reset_data['email'])) or abort(400)
+            email=data['reset_email']))
 
     def follow(self, user):
         if not self.is_following(user):

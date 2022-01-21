@@ -69,7 +69,7 @@ def put(data):
     """Edit user information"""
     user = token_auth.current_user()
     if 'password' in data and ('old_password' not in data or
-                               not user.check_password(data['old_password'])):
+                               not user.verify_password(data['old_password'])):
         abort(400)
     user.update(data)
     db.session.commit()

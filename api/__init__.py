@@ -38,9 +38,9 @@ environment variables that are currently used:
 | `DATABASE_URL`  | `sqlite:///db.sqlite` | The database URL, as defined by the [SQLAlchemy](https://docs.sqlalchemy.org/en/14/core/engines.html#database-urls) framework. |
 | `SQL_ECHO` | not defined | Whether to echo SQL statements to the console for debugging purposes. |
 | `DISABLE_AUTH` | not defined | Whether to disable authentication. When running with authentication disabled, the user is assumed to be logged as the user with `id=1`, which must exist in the database. |
-| `ACCESS_TOKEN_EXPIRATION` | `60` (1 hour) | The number of minutes an access token is valid for. |
-| `REFRESH_TOKEN_EXPIRATION` | `1440` (24 hours) | The number of minutes a refresh token is valid for. |
-| `RESET_TOKEN_EXPIRATION` | `15` (15 minutes) | The number of minutes a reset token is valid for. |
+| `ACCESS_TOKEN_MINUTES` | `15` | The number of minutes an access token is valid for. |
+| `REFRESH_TOKEN_DAYS` | `7` | The number of days a refresh token is valid for. |
+| `RESET_TOKEN_MINUTES` | `15` | The number of minutes a reset token is valid for. |
 | `DOCS_UI` | `elements` | The UI library to use for the documentation. Allowed values are `swagger_ui`, `redoc`, `rapidoc` and `elements`. |
 | `MAIL_SERVER` | `localhost` | The mail server to use for sending emails. |
 | `MAIL_PORT` | `25` | The port to use for sending emails. |
@@ -57,19 +57,24 @@ tokens.
 To obtain an access and refresh token pair, the client must send a `POST`
 request to the `/api/tokens` endpoint, passing the username and password of
 the user in a `Authorization` header, according to HTTP Basic Authentication
-scheme.
+scheme. The response includes the access and refresh tokens in the body. For
+added security in single-page applications, the refresh token is also returned
+in a secure cookie.
 
 Most endpoints in this API are authenticated with the access token, passed
-also in the `Authorization` header, but this time using the `Bearer` scheme.
+in the `Authorization` header, using the `Bearer` scheme.
 
-Access tokens are valid for one hour (by default) from the time they are
+Access tokens are valid for 15 minutes (by default) from the time they are
 issued. When the access token is expired, the client can renew it using the
 refresh token. For this, the client must send a `PUT` request to the
-`/api/tokens` endpoint, passing both the expired access token and the still
-valid refresh token in the body of the request. The response to this request
-will include a new pair of tokens. Refresh tokens have a default validity
-period of 3 days, and can only be used to renew the access token that was
-returned with it.
+`/api/tokens` endpoint, passing the expired access token in the body of the
+request, and the refresh token either in the body, or through the secure cookie
+sent when the tokens were requested. The response to this request will include
+a new pair of tokens. Refresh tokens have a default validity period of 7 days,
+and can only be used to renew the access token they were returned with. An
+attempt to use a refresh token more than once is considered a possible attack,
+and will cause all existing tokens for the user to be revoked immediately as a
+mitigation measure.
 
 All authentication failures are handled with a `401` status code in the
 response.

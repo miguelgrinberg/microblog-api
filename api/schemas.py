@@ -98,7 +98,7 @@ class UpdateUserSchema(UserSchema):
 
     @validates('old_password')
     def validate_old_password(self, value):
-        if not token_auth.current_user().check_password(value):
+        if not token_auth.current_user().verify_password(value):
             raise ValidationError('Password is incorrect')
 
 
@@ -125,7 +125,7 @@ class TokenSchema(ma.Schema):
         ordered = True
 
     access_token = ma.String(required=True)
-    refresh_token = ma.String(required=True)
+    refresh_token = ma.String()
 
 
 class PasswordResetRequestSchema(ma.Schema):

@@ -9,8 +9,8 @@ from tests.base_test_case import BaseTestCase
 class UserModelTests(BaseTestCase):
     def test_password_hashing(self):
         u = User(username='susan', password='cat')
-        assert not u.check_password('dog')
-        assert u.check_password('cat')
+        assert not u.verify_password('dog')
+        assert u.verify_password('cat')
         with pytest.raises(AttributeError):
             u.password
 

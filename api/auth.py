@@ -15,7 +15,7 @@ def verify_password(username, password):
         user = db.session.scalar(User.select().filter_by(username=username))
         if user is None:
             user = db.session.scalar(User.select().filter_by(email=username))
-        if user and user.check_password(password):
+        if user and user.verify_password(password):
             return user
 
 
@@ -36,7 +36,7 @@ def verify_token(access_token):
         user.ping()
         return user
     if access_token:
-        return User.check_access_token(access_token)
+        return User.verify_access_token(access_token)
 
 
 @token_auth.error_handler
