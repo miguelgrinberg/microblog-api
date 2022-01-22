@@ -26,7 +26,7 @@ def basic_auth_error(status=401):
         'code': error.code,
         'name': error.name,
         'description': error.description,
-    }, error.code
+    }, error.code, {'WWW-Authenticate': 'Form'}
 
 
 @token_auth.verify_token
