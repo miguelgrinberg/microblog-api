@@ -14,10 +14,14 @@ token_schema = TokenSchema()
 
 
 def token_response(token):
+    domain = request.host
+    if domain.startswith('localhost') or domain.startswith('127.0.0.1'):
+        domain = None
     cookie = dump_cookie(
         'refresh_token', token.refresh_token,
-        path=url_for('tokens.new'), secure=not current_app.debug,
-        httponly=True, samesite='strict' if not current_app.debug else None)
+        domain=domain, path=url_for('tokens.new'),
+        secure=not current_app.debug, httponly=True,
+        samesite='none' if not current_app.debug else 'lax')
     return {
         'access_token': token.access_token,
         'refresh_token': token.refresh_token,
