@@ -11,16 +11,16 @@ class Config:
     ALCHEMICAL_ENGINE_OPTIONS = {'echo': bool(os.environ.get('SQL_ECHO'))}
 
     DISABLE_AUTH = bool(os.environ.get('DISABLE_AUTH'))
-    ACCESS_TOKEN_MINUTES = int(os.environ.get('ACCESS_TOKEN_MINUTES', '15'))
-    REFRESH_TOKEN_DAYS = int(os.environ.get('REFRESH_TOKEN_DAYS', '7'))
-    RESET_TOKEN_MINUTES = int(os.environ.get('RESET_TOKEN_MINUTES', '15'))
+    ACCESS_TOKEN_MINUTES = int(os.environ.get('ACCESS_TOKEN_MINUTES') or '15')
+    REFRESH_TOKEN_DAYS = int(os.environ.get('REFRESH_TOKEN_DAYS') or '7')
+    RESET_TOKEN_MINUTES = int(os.environ.get('RESET_TOKEN_MINUTES') or '15')
 
     APIFAIRY_TITLE = 'Microblog API'
     APIFAIRY_VERSION = '1.0'
     APIFAIRY_UI = os.environ.get('DOCS_UI', 'elements')
 
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'localhost')
-    MAIL_PORT = int(os.environ.get('MAIL_PORT', '25'))
+    MAIL_PORT = int(os.environ.get('MAIL_PORT') or '25')
     MAIL_USE_TLS = bool(os.environ.get('MAIL_USE_TLS'))
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
