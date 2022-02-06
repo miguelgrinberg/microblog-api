@@ -15,7 +15,8 @@ token_schema = TokenSchema()
 
 def token_response(token):
     domain = request.host
-    if domain.startswith('localhost') or domain.startswith('127.0.0.1'):
+    if domain.startswith('localhost') or \
+            domain.startswith('127.0.0.1'):  # pragma: no cover
         domain = None
     cookie = dump_cookie(
         'refresh_token', token.refresh_token,
