@@ -138,7 +138,6 @@ class PasswordResetRequestSchema(ma.Schema):
 
     email = ma.String(required=True, validate=[validate.Length(max=120),
                                                validate.Email()])
-    callback_url = ma.String(required=True, validate=validate.Length(min=1))
 
 
 class PasswordResetSchema(ma.Schema):

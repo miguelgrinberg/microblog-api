@@ -21,6 +21,8 @@ class Config:
     ACCESS_TOKEN_MINUTES = int(os.environ.get('ACCESS_TOKEN_MINUTES') or '15')
     REFRESH_TOKEN_DAYS = int(os.environ.get('REFRESH_TOKEN_DAYS') or '7')
     RESET_TOKEN_MINUTES = int(os.environ.get('RESET_TOKEN_MINUTES') or '15')
+    PASSWORD_RESET_URL = os.environ.get('PASSWORD_RESET_URL') or \
+        'http://localhost:3000/reset'
 
     APIFAIRY_TITLE = 'Microblog API'
     APIFAIRY_VERSION = '1.0'

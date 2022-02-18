@@ -7,6 +7,11 @@
       "required": false,
       "description": "Set to any non-empty value to disable token authentication."
     },
+    "PASSWORD_RESET_URL": {
+      "required": false,
+      "description": "The URL to use in password reset links.",
+      "value": "http://localhost:3000/reset"
+    },
     "MAIL_SERVER": {
       "required": false,
       "description": "An email server to use when sending emails. For SendGrid, use \"smtp.sendgrid.net\". For Gmail use \"smtp.googlemail.com\"."

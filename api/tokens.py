@@ -83,7 +83,7 @@ def reset(args):
     user = db.session.scalar(User.select().filter_by(email=args['email']))
     if user is not None:
         reset_token = user.generate_reset_token()
-        reset_url = request.referrer.strip('/') + args['callback_url'] + \
+        reset_url = current_app.config['PASSWORD_RESET_URL'] + \
             '?token=' + reset_token
         send_email(args['email'], 'Reset Your Password', 'reset',
                    token=reset_token, url=reset_url)
