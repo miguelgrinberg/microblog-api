@@ -143,19 +143,19 @@ class AuthTests(BaseTestCase):
     def test_reset_password(self):
         with mock.patch('api.tokens.send_email') as send_email:
             rv = self.client.post('/api/tokens/reset', json={
-                'email': 'bad@example.com', 'callback_url': '/reset'
-            }, headers={'Referer': 'https://example.com/'})
+                'email': 'bad@example.com',
+            })
             assert rv.status_code == 204
             rv = self.client.post('/api/tokens/reset', json={
-                'email': 'test@example.com', 'callback_url': '/reset'
-            }, headers={'Referer': 'https://example.com/'})
+                'email': 'test@example.com',
+            })
             assert rv.status_code == 204
         send_email.assert_called_once()
         assert send_email.call_args[0] == (
             'test@example.com', 'Reset Your Password', 'reset')
         reset_token = send_email.call_args[1]['token']
         reset_url = send_email.call_args[1]['url']
-        assert reset_url == 'https://example.com/reset?token=' + reset_token
+        assert reset_url == 'http://localhost:3000/reset?token=' + reset_token
 
         rv = self.client.put('/api/tokens/reset', json={
             'token': reset_token + 'x',
