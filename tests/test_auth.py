@@ -29,6 +29,22 @@ class AuthTests(BaseTestCase):
             'Authorization': f'Bearer {refresh_token}'})
         assert rv.status_code == 401
 
+    def test_get_token_in_cookie_only(self):
+        self.app.config['REFRESH_TOKEN_IN_COOKIE'] = True
+        self.app.config['REFRESH_TOKEN_IN_BODY'] = False
+        rv = self.client.post('/api/tokens', auth=('test', 'foo'))
+        assert rv.status_code == 200
+        assert rv.json['refresh_token'] is None
+        assert rv.headers['Set-Cookie'].startswith('refresh_token=')
+
+    def test_get_token_in_body_only(self):
+        self.app.config['REFRESH_TOKEN_IN_COOKIE'] = False
+        self.app.config['REFRESH_TOKEN_IN_BODY'] = True
+        rv = self.client.post('/api/tokens', auth=('test', 'foo'))
+        assert rv.status_code == 200
+        assert rv.json['refresh_token'] is not None
+        assert 'Set-Cookie' not in rv.headers
+
     def test_token_expired(self):
         rv = self.client.post('/api/tokens', auth=('test', 'foo'))
         assert rv.status_code == 200

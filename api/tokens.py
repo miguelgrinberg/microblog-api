@@ -18,15 +18,21 @@ def token_response(token):
     if domain.startswith('localhost') or \
             domain.startswith('127.0.0.1'):  # pragma: no cover
         domain = None
-    cookie = dump_cookie(
-        'refresh_token', token.refresh_token,
-        domain=domain, path=url_for('tokens.new'),
-        secure=not current_app.debug, httponly=True,
-        samesite='none' if not current_app.debug else 'lax')
+    headers = {}
+    if current_app.config['REFRESH_TOKEN_IN_COOKIE']:
+        samesite = 'strict'
+        if current_app.config['USE_CORS']:  # pragma: no branch
+            samesite = 'none' if not current_app.debug else 'lax'
+        headers['Set-Cookie'] = dump_cookie(
+            'refresh_token', token.refresh_token,
+            domain=domain, path=url_for('tokens.new'),
+            secure=not current_app.debug, httponly=True,
+            samesite=samesite)
     return {
         'access_token': token.access_token,
-        'refresh_token': token.refresh_token,
-    }, 200, {'Set-Cookie': cookie}
+        'refresh_token': token.refresh_token
+        if current_app.config['REFRESH_TOKEN_IN_BODY'] else None,
+    }, 200, headers
 
 
 @tokens.route('/tokens', methods=['POST'])

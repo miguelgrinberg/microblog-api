@@ -13,6 +13,7 @@ class TestConfig(Config):
 
 class TestConfigWithAuth(TestConfig):
     DISABLE_AUTH = False
+    REFRESH_TOKEN_IN_BODY = True
 
 
 class BaseTestCase(unittest.TestCase):
