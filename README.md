@@ -76,3 +76,18 @@ flask run
 
 The application runs on `localhost:5000`. You can access the API documentation
 at `http://localhost:5000/docs`.
+
+## Troubleshooting
+
+On macOS Monterey and newer, Apple decided to use port 5000 for its AirPlay
+service, which means that the Microblog API server will not be able to run on
+this port. There are two possible ways to solve this problem:
+
+1. Disable the AirPlay Receiver service. To do this, open the System
+Preferences, go to "Sharing" and uncheck "AirPlay Receiver".
+2. Move Microblog API to another port, for example 4000.
+    - If you are running Microblog API with Docker, open *docker-compose.yml*
+    and under ports, change the line that reads `- "5000:5000"` to
+    `- "4000:5000"`.
+    - If you are running Microblog API with Python, start the server with the
+    command `flask run --port=4000`.
