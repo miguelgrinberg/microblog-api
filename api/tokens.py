@@ -14,10 +14,6 @@ token_schema = TokenSchema()
 
 
 def token_response(token):
-    domain = request.host
-    if domain.startswith('localhost') or \
-            domain.startswith('127.0.0.1'):  # pragma: no cover
-        domain = None
     headers = {}
     if current_app.config['REFRESH_TOKEN_IN_COOKIE']:
         samesite = 'strict'
@@ -25,9 +21,8 @@ def token_response(token):
             samesite = 'none' if not current_app.debug else 'lax'
         headers['Set-Cookie'] = dump_cookie(
             'refresh_token', token.refresh_token,
-            domain=domain, path=url_for('tokens.new'),
-            secure=not current_app.debug, httponly=True,
-            samesite=samesite)
+            path=url_for('tokens.new'), secure=not current_app.debug,
+            httponly=True, samesite=samesite)
     return {
         'access_token': token.access_token,
         'refresh_token': token.refresh_token
