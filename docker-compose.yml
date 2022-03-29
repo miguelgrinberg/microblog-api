@@ -5,7 +5,7 @@ services:
     command: ./boot.sh
     image: microblog-api
     ports:
-      - "5000:5000"
+      - "${MICROBLOG_API_PORT:-5000}:5000"
     volumes:
       - type: volume
         source: data

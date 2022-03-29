@@ -85,9 +85,9 @@ this port. There are two possible ways to solve this problem:
 
 1. Disable the AirPlay Receiver service. To do this, open the System
 Preferences, go to "Sharing" and uncheck "AirPlay Receiver".
-2. Move Microblog API to another port, for example 4000.
-    - If you are running Microblog API with Docker, open *docker-compose.yml*
-    and under ports, change the line that reads `- "5000:5000"` to
-    `- "4000:5000"`.
+2. Move Microblog API to another port:
+    - If you are running Microblog API with Docker, add a
+    `MICROBLOG_API_PORT=4000` line to your *.env* file. Change the 4000 to your
+    desired port number.
     - If you are running Microblog API with Python, start the server with the
     command `flask run --port=4000`.
