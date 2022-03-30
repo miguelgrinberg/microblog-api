@@ -5,7 +5,7 @@
   "env": {
     "DISABLE_AUTH": {
       "required": false,
-      "description": "Set to any non-empty value to disable token authentication."
+      "description": "Set to \"true\" to disable token authentication."
     },
     "PASSWORD_RESET_URL": {
       "required": false,
@@ -47,6 +47,6 @@
     }
   ],
   "scripts": {
-    "postdeploy": "bash -c \"pip install psycopg2-binary && flask db upgrade && flask fake users 10 && flask fake posts 100\""
+    "postdeploy": "flask db upgrade && flask fake users 10 && flask fake posts 100\""
   }
 }
