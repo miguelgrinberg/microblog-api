@@ -85,6 +85,7 @@ packaging==23.2
     #   marshmallow-sqlalchemy
     #   webargs
 pip-tools==7.3.0
+psycopg2-binary==2.9.5
     # via -r requirements.in
 pyjwt==2.8.0
     # via -r requirements.in

@@ -11,6 +11,7 @@ flask-sqlalchemy  # not used, but required by flask-marshmallow
 gunicorn
 marshmallow-sqlalchemy
 pip-tools
+psycopg2-binary
 pyjwt
 python-dotenv
 requests
