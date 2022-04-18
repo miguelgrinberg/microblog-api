@@ -75,6 +75,21 @@ def refresh(args):
     return token_response(new_token)
 
 
+@tokens.route('/tokens', methods=['DELETE'])
+@response(EmptySchema, status_code=204, description='Token revoked')
+@other_responses({401: 'Invalid access token'})
+def revoke():
+    """Revoke an access token"""
+    access_token = request.headers['Authorization'].split()[1]
+    token = db.session.scalar(Token.select().filter_by(
+        access_token=access_token))
+    if not token:  # pragma: no cover
+        abort(401)
+    token.expire()
+    db.session.commit()
+    return {}
+
+
 @tokens.route('/tokens/reset', methods=['POST'])
 @body(PasswordResetRequestSchema)
 @response(EmptySchema, status_code=204,

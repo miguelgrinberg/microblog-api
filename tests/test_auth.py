@@ -148,6 +148,24 @@ class AuthTests(BaseTestCase):
             'refresh_token': refresh_token3})
         assert rv.status_code == 401
 
+    def test_revoke(self):
+        rv = self.client.post('/api/tokens', auth=('test', 'foo'))
+        assert rv.status_code == 200
+        access_token = rv.json['access_token']
+        refresh_token = rv.json['refresh_token']
+
+        rv = self.client.get('/api/users', headers={
+            'Authorization': f'Bearer {access_token}'})
+        assert rv.status_code == 200
+
+        rv = self.client.delete('/api/tokens', headers={
+            'Authorization': f'Bearer {access_token}'})
+        assert rv.status_code == 204
+
+        rv = self.client.get('/api/users', headers={
+            'Authorization': f'Bearer {access_token}'})
+        assert rv.status_code == 401
+
     def test_no_login(self):
         rv = self.client.post('/api/tokens')
         assert rv.status_code == 401
