@@ -152,7 +152,6 @@ class AuthTests(BaseTestCase):
         rv = self.client.post('/api/tokens', auth=('test', 'foo'))
         assert rv.status_code == 200
         access_token = rv.json['access_token']
-        refresh_token = rv.json['refresh_token']
 
         rv = self.client.get('/api/users', headers={
             'Authorization': f'Bearer {access_token}'})
