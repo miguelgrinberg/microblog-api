@@ -2,7 +2,6 @@ version: '3'
 services:
   microblog-api:
     build: .
-    command: ./boot.sh
     image: microblog-api
     ports:
       - "${MICROBLOG_API_PORT:-5000}:5000"

@@ -11,3 +11,4 @@ COPY migrations migrations
 COPY microblog.py config.py boot.sh ./
 
 EXPOSE 5000
+CMD ./boot.sh
