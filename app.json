@@ -47,6 +47,6 @@
     }
   ],
   "scripts": {
-    "postdeploy": "flask db upgrade && flask fake users 10 && flask fake posts 100\""
+    "postdeploy": "flask db upgrade && flask fake users 10 && flask fake posts 100"
   }
 }
