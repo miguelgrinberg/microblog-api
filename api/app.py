@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for
+from flask import Flask, redirect, url_for, request
 from alchemical.flask import Alchemical
 from flask_migrate import Migrate
 from flask_marshmallow import Marshmallow
@@ -55,5 +55,11 @@ def create_app(config_class=Config):
     @app.route('/')
     def index():  # pragma: no cover
         return redirect(url_for('apifairy.docs'))
+
+    @app.after_request
+    def after_request(response):
+        # Werkzeu sometimes does not flush the request body so we do it here
+        request.get_data()
+        return response
 
     return app
