@@ -37,9 +37,10 @@ def token_response(token):
 def new():
     """Create new access and refresh tokens
 
-    The refresh token is also returned as a hardened cookie, in case the
+    The refresh token is returned in the body of the request or as a hardened
+    cookie, depending on configuration. A cookie should be used when the
     client is running in an insecure environment such as a web browser, and
-    cannot securely store the token.
+    cannot adequately protect the refresh token against unauthorized access.
     """
     user = basic_auth.current_user()
     token = user.generate_auth_token()

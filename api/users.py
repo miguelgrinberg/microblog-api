@@ -64,7 +64,6 @@ def me():
 @authenticate(token_auth)
 @body(update_user_schema)
 @response(user_schema)
-@other_responses({403: 'Cannot use a refreshed token for this operation.'})
 def put(data):
     """Edit user information"""
     user = token_auth.current_user()
