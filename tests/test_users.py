@@ -12,6 +12,12 @@ class UserTests(BaseTestCase):
         user_id = rv.json['id']
         rv = self.client.post('/api/users', json={
             'username': 'user',
+            'email': 'user2@example.com',
+            'password': 'dog'
+        })
+        assert rv.status_code == 400
+        rv = self.client.post('/api/users', json={
+            'username': 'user2',
             'email': 'user@example.com',
             'password': 'dog'
         })
@@ -63,6 +69,19 @@ class UserTests(BaseTestCase):
         assert rv.json['username'] == 'test'
         assert rv.json['email'] == 'test@example.com'
         assert 'password' not in rv.json
+
+    def test_edit_user_no_changes(self):
+        rv = self.client.get('/api/me')
+        assert rv.status_code == 200
+        rv2 = self.client.put('/api/me', json={
+            'username': rv.json['username'],
+            'email': rv.json['email'],
+            'about_me': rv.json['about_me'],
+        })
+        assert rv2.status_code == 200
+        assert rv2.json['username'] == rv.json['username']
+        assert rv2.json['email'] == rv.json['email']
+        assert rv2.json['about_me'] == rv.json['about_me']
 
     def test_edit_me(self):
         rv = self.client.put('/api/me', json={

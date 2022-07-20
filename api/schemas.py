@@ -89,6 +89,14 @@ class UserSchema(ma.SQLAlchemySchema):
                 db.session.scalar(User.select().filter_by(username=value)):
             raise ValidationError('Use a different username.')
 
+    @validates('email')
+    def validate_email(self, value):
+        user = token_auth.current_user()
+        old_email = user.email if user else None
+        if value != old_email and \
+                db.session.scalar(User.select().filter_by(email=value)):
+            raise ValidationError('Use a different email.')
+
     @post_dump
     def fix_datetimes(self, data, **kwargs):
         data['first_seen'] += 'Z'
