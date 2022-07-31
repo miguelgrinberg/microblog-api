@@ -50,7 +50,7 @@ class UserTests(BaseTestCase):
         assert 'password' not in rv.json['data'][0]
         
     def test_get_search_users(self):
-        rv = self.client.get('/api/users/search?terms=test')
+        rv = self.client.get('/api/users/search/?terms=test')
         assert rv.status_code == 200
         assert rv.json['pagination']['total'] == 1
         assert rv.json['data'][0]['username'] == 'test'
