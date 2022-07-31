@@ -52,6 +52,13 @@ def get_by_username(username):
         abort(404)
 
 
+@users.route('/users/search/', methods=['GET'])
+@paginated_response(users_schema, filter_fields=[User.username, User.email])
+def search_all_users():
+    """Retrieve all users by search"""
+    return db.session.query(User)
+
+
 @users.route('/me', methods=['GET'])
 @authenticate(token_auth)
 @response(user_schema)
