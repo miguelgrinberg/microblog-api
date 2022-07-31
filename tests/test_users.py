@@ -48,7 +48,15 @@ class UserTests(BaseTestCase):
         assert rv.json['data'][0]['username'] == 'test'
         assert rv.json['data'][0]['email'] == 'test@example.com'
         assert 'password' not in rv.json['data'][0]
-
+        
+    def test_get_search_users(self):
+        rv = self.client.get('/api/users/search?terms=test')
+        assert rv.status_code == 200
+        assert rv.json['pagination']['total'] == 1
+        assert rv.json['data'][0]['username'] == 'test'
+        assert rv.json['data'][0]['email'] == 'test@example.com'
+        assert 'password' not in rv.json['data'][0]
+        
     def test_get_user(self):
         rv = self.client.get('/api/users/1')
         assert rv.status_code == 200
