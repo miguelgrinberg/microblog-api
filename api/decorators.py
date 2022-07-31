@@ -1,7 +1,8 @@
 from functools import wraps
 from flask import abort
 from apifairy import arguments, response
-import sqlalchemy as sqla, or_
+import sqlalchemy as sqla
+from sqlalchemy import or_
 
 from api.app import db
 from api.schemas import StringPaginationSchema, PaginatedCollection
