@@ -8,7 +8,7 @@ from api.schemas import StringPaginationSchema, PaginatedCollection
 
 def paginated_response(schema, max_limit=25, order_by=None,
                        order_direction='asc',
-                       pagination_schema=StringPaginationSchema):
+                       pagination_schema=StringPaginationSchema, filter_fields=[]):
     def inner(f):
         @wraps(f)
         def paginate(*args, **kwargs):
@@ -19,9 +19,17 @@ def paginated_response(schema, max_limit=25, order_by=None,
                 o = order_by.desc() if order_direction == 'desc' else order_by
                 select_query = select_query.order_by(o)
 
+                
+            # if there are search terms then filter by these. Fields to be filtered to be supplied to decorator in a
+            # list. This is here so the count of records is correct
+            terms = pagination.get('terms')
+            if terms:
+                if filter_fields:
+                    select_query = select_query.filter(or_(*[x.ilike(f"%{terms}%") for x in filter_fields]))
+
             count = db.session.scalar(sqla.select(
                 sqla.func.count()).select_from(select_query))
-
+            
             limit = pagination.get('limit', max_limit)
             offset = pagination.get('offset')
             after = pagination.get('after')
@@ -49,12 +57,19 @@ def paginated_response(schema, max_limit=25, order_by=None,
                 query = select_query.limit(limit).offset(offset)
 
             data = db.session.scalars(query).all()
-            return {'data': data, 'pagination': {
+            
+            # terms are split out and added only if needed to the dict
+            out = {'data': data, 'pagination': {
                 'offset': offset,
                 'limit': limit,
                 'count': len(data),
                 'total': count,
             }}
+
+            if terms:
+                out["pagination"]["terms"] = terms
+
+            return out
 
         # wrap with APIFairy's arguments and response decorators
         return arguments(pagination_schema)(response(PaginatedCollection(
