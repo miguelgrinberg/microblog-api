@@ -30,7 +30,8 @@ class DateTimePaginationSchema(ma.Schema):
 class StringPaginationSchema(ma.Schema):
     class Meta:
         ordered = True
-
+        
+    terms = ma.String()
     limit = ma.Integer()
     offset = ma.Integer()
     after = ma.String(load_only=True)
