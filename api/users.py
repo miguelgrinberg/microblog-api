@@ -55,7 +55,7 @@ def get_by_username(username):
 @users.route('/users/search/', methods=['GET'])
 @paginated_response(users_schema, filter_fields=[User.username, User.email])
 def search_all_users():
-    """Retrieve all users by search"""
+    """Retrieve users filterd by search terms"""
     return db.session.query(User)
 
 
