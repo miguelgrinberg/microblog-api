@@ -47,7 +47,10 @@ class Token(db.Model):
         self.refresh_expiration = datetime.utcnow() + \
             timedelta(days=current_app.config['REFRESH_TOKEN_DAYS'])
 
-    def expire(self, delay=30):
+    def expire(self, delay=None):
+        if delay is None:  # pragma: no branch
+            # 5 second delay to allow simultaneous requests
+            delay = 5 if not current_app.testing else 0
         self.access_expiration = datetime.utcnow() + timedelta(seconds=delay)
         self.refresh_expiration = datetime.utcnow() + timedelta(seconds=delay)
 
