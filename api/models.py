@@ -2,11 +2,12 @@ from datetime import datetime, timedelta
 from hashlib import md5
 import secrets
 from time import time
+from typing import Optional
 
 from flask import current_app, url_for
 import jwt
-import sqlalchemy as sqla
-from sqlalchemy import orm as sqla_orm
+import sqlalchemy as sa
+from sqlalchemy import orm as so
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from api.app import db
@@ -18,26 +19,26 @@ class Updateable:
             setattr(self, attr, value)
 
 
-followers = sqla.Table(
+followers = sa.Table(
     'followers',
     db.Model.metadata,
-    sqla.Column('follower_id', sqla.Integer, sqla.ForeignKey('users.id')),
-    sqla.Column('followed_id', sqla.Integer, sqla.ForeignKey('users.id'))
+    sa.Column('follower_id', sa.ForeignKey('users.id'), primary_key=True),
+    sa.Column('followed_id', sa.ForeignKey('users.id'), primary_key=True)
 )
 
 
 class Token(db.Model):
     __tablename__ = 'tokens'
 
-    id = sqla.Column(sqla.Integer, primary_key=True)
-    access_token = sqla.Column(sqla.String(64), nullable=False, index=True)
-    access_expiration = sqla.Column(sqla.DateTime, nullable=False)
-    refresh_token = sqla.Column(sqla.String(64), nullable=False, index=True)
-    refresh_expiration = sqla.Column(sqla.DateTime, nullable=False)
-    user_id = sqla.Column(sqla.Integer, sqla.ForeignKey('users.id'),
-                          index=True)
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    access_token: so.Mapped[str] = so.mapped_column(sa.String(64), index=True)
+    access_expiration: so.Mapped[datetime]
+    refresh_token: so.Mapped[str] = so.mapped_column(sa.String(64), index=True)
+    refresh_expiration: so.Mapped[datetime]
+    user_id: so.Mapped[int] = so.mapped_column(
+        sa.ForeignKey('users.id'), index=True)
 
-    user = sqla_orm.relationship('User', back_populates='tokens')
+    user: so.Mapped['User'] = so.relationship(back_populates='tokens')
 
     def generate(self):
         self.access_token = secrets.token_urlsafe()
@@ -65,46 +66,36 @@ class Token(db.Model):
 class User(Updateable, db.Model):
     __tablename__ = 'users'
 
-    id = sqla.Column(sqla.Integer, primary_key=True)
-    username = sqla.Column(sqla.String(64), index=True, unique=True,
-                           nullable=False)
-    email = sqla.Column(sqla.String(120), index=True, unique=True,
-                        nullable=False)
-    password_hash = sqla.Column(sqla.String(128))
-    about_me = sqla.Column(sqla.String(140))
-    first_seen = sqla.Column(sqla.DateTime, default=datetime.utcnow)
-    last_seen = sqla.Column(sqla.DateTime, default=datetime.utcnow)
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    username: so.Mapped[str] = so.mapped_column(
+        sa.String(64), index=True, unique=True)
+    email: so.Mapped[str] = so.mapped_column(
+        sa.String(120), index=True, unique=True)
+    password_hash: so.Mapped[Optional[str]] = so.mapped_column(sa.String(128))
+    about_me: so.Mapped[Optional[str]] = so.mapped_column(sa.String(140))
+    first_seen: so.Mapped[datetime] = so.mapped_column(default=datetime.utcnow)
+    last_seen: so.Mapped[datetime] = so.mapped_column(default=datetime.utcnow)
 
-    tokens = sqla_orm.relationship('Token', back_populates='user',
-                                   lazy='noload')
-    posts = sqla_orm.relationship('Post', back_populates='author',
-                                  lazy='noload')
-    following = sqla_orm.relationship(
-        'User', secondary=followers,
+    tokens: so.WriteOnlyMapped['Token'] = so.relationship(
+        back_populates='user')
+    posts: so.WriteOnlyMapped['Post'] = so.relationship(
+        back_populates='author')
+    following: so.WriteOnlyMapped['User'] = so.relationship(
+        secondary=followers,
         primaryjoin=(followers.c.follower_id == id),
         secondaryjoin=(followers.c.followed_id == id),
-        back_populates='followers', lazy='noload')
-    followers = sqla_orm.relationship(
-        'User', secondary=followers,
+        back_populates='followers')
+    followers: so.WriteOnlyMapped['User'] = so.relationship(
+        secondary=followers,
         primaryjoin=(followers.c.followed_id == id),
         secondaryjoin=(followers.c.follower_id == id),
-        back_populates='following', lazy='noload')
-
-    def posts_select(self):
-        return Post.select().where(sqla_orm.with_parent(self, User.posts))
-
-    def following_select(self):
-        return User.select().where(sqla_orm.with_parent(self, User.following))
-
-    def followers_select(self):
-        return User.select().where(sqla_orm.with_parent(self, User.followers))
+        back_populates='following')
 
     def followed_posts_select(self):
-        return Post.select().join(
-            followers, (followers.c.followed_id == Post.user_id),
-            isouter=True).group_by(Post.id).filter(
-                sqla.or_(Post.author == self,
-                         followers.c.follower_id == self.id))
+        Author = so.aliased(User)
+        return Post.select().join(Post.author.of_type(Author)).join(
+            Author.followers, isouter=True).group_by(Post).where(
+                sa.or_(Post.author == self, User.id == self.id))
 
     def __repr__(self):  # pragma: no cover
         return '<User {}>'.format(self.username)
@@ -203,13 +194,14 @@ class User(Updateable, db.Model):
 class Post(Updateable, db.Model):
     __tablename__ = 'posts'
 
-    id = sqla.Column(sqla.Integer, primary_key=True)
-    text = sqla.Column(sqla.String(280), nullable=False)
-    timestamp = sqla.Column(sqla.DateTime, index=True, default=datetime.utcnow,
-                            nullable=False)
-    user_id = sqla.Column(sqla.Integer, sqla.ForeignKey(User.id), index=True)
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    text: so.Mapped[str] = so.mapped_column(sa.String(280))
+    timestamp: so.Mapped[datetime] = so.mapped_column(
+        index=True, default=datetime.utcnow)
+    user_id: so.Mapped[int] = so.mapped_column(
+        sa.ForeignKey(User.id), index=True)
 
-    author = sqla_orm.relationship('User', back_populates='posts')
+    author: so.Mapped['User'] = so.relationship(back_populates='posts')
 
     def __repr__(self):  # pragma: no cover
         return '<Post {}>'.format(self.text)

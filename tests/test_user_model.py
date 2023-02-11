@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-import sqlalchemy as sqla
+import sqlalchemy as sa
 import pytest
 from api.app import db
 from api.models import User, Post
@@ -31,8 +31,8 @@ class UserModelTests(BaseTestCase):
         u2 = User(username='susan', email='susan@example.com')
         db.session.add_all([u1, u2])
         db.session.commit()
-        assert db.session.scalars(u1.following_select()).all() == []
-        assert db.session.scalars(u1.followers_select()).all() == []
+        assert db.session.scalars(u1.following.select()).all() == []
+        assert db.session.scalars(u1.followers.select()).all() == []
 
         for _ in range(2):
             u1.follow(u2)
@@ -40,21 +40,21 @@ class UserModelTests(BaseTestCase):
             assert u1.is_following(u2)
             assert not u1.is_following(u1)
             assert not u2.is_following(u1)
-            assert db.session.scalar(sqla.select(
-                sqla.func.count()).select_from(u1.following_select())) == 1
-            assert db.session.scalar(u1.following_select()).username == 'susan'
-            assert db.session.scalar(sqla.select(
-                sqla.func.count()).select_from(u2.followers_select())) == 1
-            assert db.session.scalar(u2.followers_select()).username == 'john'
+            assert db.session.scalar(sa.select(sa.func.count()).select_from(
+                u1.following.select().subquery())) == 1
+            assert db.session.scalar(u1.following.select()).username == 'susan'
+            assert db.session.scalar(sa.select(sa.func.count()).select_from(
+                u2.followers.select().subquery())) == 1
+            assert db.session.scalar(u2.followers.select()).username == 'john'
 
         for _ in range(2):
             u1.unfollow(u2)
             db.session.commit()
             assert not u1.is_following(u2)
-            assert db.session.scalar(sqla.select(
-                sqla.func.count()).select_from(u1.following_select())) == 0
-            assert db.session.scalar(sqla.select(
-                sqla.func.count()).select_from(u2.followers_select())) == 0
+            assert db.session.scalar(sa.select(sa.func.count()).select_from(
+                u1.following.select().subquery())) == 0
+            assert db.session.scalar(sa.select(sa.func.count()).select_from(
+                u2.followers.select().subquery())) == 0
 
     def test_get_users(self):
         rv = self.client.post('/api/users', json={

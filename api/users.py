@@ -81,7 +81,7 @@ def put(data):
 def my_following():
     """Retrieve the users the logged in user is following"""
     user = token_auth.current_user()
-    return user.following_select()
+    return user.following.select()
 
 
 @users.route('/me/followers', methods=['GET'])
@@ -90,7 +90,7 @@ def my_following():
 def my_followers():
     """Retrieve the followers of the logged in user"""
     user = token_auth.current_user()
-    return user.followers_select()
+    return user.followers.select()
 
 
 @users.route('/me/following/<int:id>', methods=['GET'])
@@ -146,7 +146,7 @@ def unfollow(id):
 def following(id):
     """Retrieve the users this user is following"""
     user = db.session.get(User, id) or abort(404)
-    return user.following_select()
+    return user.following.select()
 
 
 @users.route('/users/<int:id>/followers', methods=['GET'])
@@ -156,4 +156,4 @@ def following(id):
 def followers(id):
     """Retrieve the followers of the user"""
     user = db.session.get(User, id) or abort(404)
-    return user.followers_select()
+    return user.followers.select()

@@ -55,7 +55,7 @@ def all():
 def user_all(id):
     """Retrieve all posts from a user"""
     user = db.session.get(User, id) or abort(404)
-    return user.posts_select()
+    return user.posts.select()
 
 
 @posts.route('/posts/<int:id>', methods=['PUT'])
