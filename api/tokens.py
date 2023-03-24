@@ -24,7 +24,7 @@ def token_response(token):
             path=url_for('tokens.new'), secure=not current_app.debug,
             httponly=True, samesite=samesite)
     return {
-        'access_token': token.access_token,
+        'access_token': token.access_token_jwt,
         'refresh_token': token.refresh_token
         if current_app.config['REFRESH_TOKEN_IN_BODY'] else None,
     }, 200, headers
@@ -61,12 +61,12 @@ def refresh(args):
     request or in a `refresh_token` cookie. The access token must be passed in
     the body of the request.
     """
-    access_token = args['access_token']
+    access_token_jwt = args['access_token']
     refresh_token = args.get('refresh_token', request.cookies.get(
         'refresh_token'))
-    if not access_token or not refresh_token:
+    if not access_token_jwt or not refresh_token:
         abort(401)
-    token = User.verify_refresh_token(refresh_token, access_token)
+    token = User.verify_refresh_token(refresh_token, access_token_jwt)
     if not token:
         abort(401)
     token.expire()
@@ -81,9 +81,8 @@ def refresh(args):
 @other_responses({401: 'Invalid access token'})
 def revoke():
     """Revoke an access token"""
-    access_token = request.headers['Authorization'].split()[1]
-    token = db.session.scalar(Token.select().filter_by(
-        access_token=access_token))
+    access_token_jwt = request.headers['Authorization'].split()[1]
+    token = Token.from_jwt(access_token_jwt)
     if not token:  # pragma: no cover
         abort(401)
     token.expire()

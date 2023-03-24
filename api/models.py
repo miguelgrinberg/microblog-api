@@ -40,6 +40,12 @@ class Token(db.Model):
 
     user: so.Mapped['User'] = so.relationship(back_populates='tokens')
 
+    @property
+    def access_token_jwt(self):
+        return jwt.encode({'token': self.access_token},
+                          current_app.config['SECRET_KEY'],
+                          algorithm='HS256')
+
     def generate(self):
         self.access_token = secrets.token_urlsafe()
         self.access_expiration = datetime.utcnow() + \
@@ -61,6 +67,18 @@ class Token(db.Model):
         yesterday = datetime.utcnow() - timedelta(days=1)
         db.session.execute(Token.delete().where(
             Token.refresh_expiration < yesterday))
+
+    @staticmethod
+    def from_jwt(access_token_jwt):
+        access_token = None
+        try:
+            access_token = jwt.decode(access_token_jwt,
+                                      current_app.config['SECRET_KEY'],
+                                      algorithms=['HS256'])['token']
+            return db.session.scalar(Token.select().filter_by(
+                access_token=access_token))
+        except jwt.PyJWTError:
+            pass
 
 
 class User(Updateable, db.Model):
@@ -129,9 +147,8 @@ class User(Updateable, db.Model):
         return token
 
     @staticmethod
-    def verify_access_token(access_token, refresh_token=None):
-        token = db.session.scalar(Token.select().filter_by(
-            access_token=access_token))
+    def verify_access_token(access_token_jwt, refresh_token=None):
+        token = Token.from_jwt(access_token_jwt)
         if token:
             if token.access_expiration > datetime.utcnow():
                 token.user.ping()
@@ -139,10 +156,9 @@ class User(Updateable, db.Model):
                 return token.user
 
     @staticmethod
-    def verify_refresh_token(refresh_token, access_token):
-        token = db.session.scalar(Token.select().filter_by(
-            refresh_token=refresh_token, access_token=access_token))
-        if token:
+    def verify_refresh_token(refresh_token, access_token_jwt):
+        token = Token.from_jwt(access_token_jwt)
+        if token and token.refresh_token == refresh_token:
             if token.refresh_expiration > datetime.utcnow():
                 return token
 

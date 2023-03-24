@@ -98,6 +98,11 @@ class AuthTests(BaseTestCase):
             'refresh_token': refresh_token,
         })
         assert rv.status_code == 401
+        rv = self.client.put('/api/tokens', json={
+            'access_token': 'foo',
+            'refresh_token': refresh_token,
+        })
+        assert rv.status_code == 401
 
     def test_refresh_revoke_all(self):
         rv = self.client.post('/api/tokens', auth=('test', 'foo'))
