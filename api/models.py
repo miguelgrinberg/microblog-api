@@ -123,6 +123,10 @@ class User(Updateable, db.Model):
         return url_for('users.get', id=self.id)
 
     @property
+    def has_password(self):
+        return self.password_hash is not None
+
+    @property
     def avatar_url(self):
         digest = md5(self.email.lower().encode('utf-8')).hexdigest()
         return f'https://www.gravatar.com/avatar/{digest}?d=identicon'

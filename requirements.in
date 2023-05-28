@@ -11,3 +11,4 @@ gunicorn
 marshmallow-sqlalchemy
 pyjwt
 python-dotenv
+requests

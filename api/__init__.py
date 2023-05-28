@@ -52,6 +52,11 @@ environment variables that are currently used:
 | `MAIL_USERNAME` | not defined | The username to use for sending emails. |
 | `MAIL_PASSWORD` | not defined | The password to use for sending emails. |
 | `MAIL_DEFAULT_SENDER` | `donotreply@microblog.example.com` | The default sender to use for emails. |
+| `GITHUB_CLIENT_ID` | not defined | The client ID for the GitHub OAuth2 application, used for logging in with a GitHub account. |
+| `GITHUB_CLIENT_SECRET` | not defined | The client secret for the GitHub OAuth2 application, used for logging in with a GitHub account. |
+| `GOOGLE_CLIENT_ID` | not defined | The client ID for the Google OAuth2 application, used for logging in with a Google account. |
+| `GOOGLE_CLIENT_SECRET` | not defined | The client secret for the Google OAuth2 application, used for logging in with a Google account. |
+| `OAUTH2_REDIRECT_URI` | `http://localhost:3000/oauth2/{provider}/callback` | The redirect URI to use for OAuth2 logins. A `{provider}` placeholder can be used to have the provider name inserted dynamically. |
 
 ## Authentication
 

@@ -72,6 +72,7 @@ class UserSchema(ma.SQLAlchemySchema):
                                                    validate.Email()])
     password = ma.String(required=True, load_only=True,
                          validate=validate.Length(min=3))
+    has_password = ma.Boolean(dump_only=True)
     avatar_url = ma.String(dump_only=True)
     about_me = ma.auto_field()
     first_seen = ma.auto_field(dump_only=True)
@@ -154,3 +155,8 @@ class PasswordResetSchema(ma.Schema):
 
     token = ma.String(required=True)
     new_password = ma.String(required=True, validate=validate.Length(min=3))
+
+
+class OAuth2Schema(ma.Schema):
+    code = ma.String(required=True)
+    state = ma.String(required=True)

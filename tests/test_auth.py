@@ -212,3 +212,154 @@ class AuthTests(BaseTestCase):
 
         rv = self.client.post('/api/tokens', auth=('test', 'bar'))
         assert rv.status_code == 200
+
+    def test_oauth(self):
+        rv = self.client.get('/api/tokens/oauth2/bar')
+        assert rv.status_code == 404
+        rv = self.client.get('/api/tokens/oauth2/foo')
+        assert rv.status_code == 302
+        assert rv.headers['Location'].startswith('https://foo.com/login?')
+        args = rv.headers['Location'].split('?')[1].split('&')
+        assert 'client_id=foo-id' in args
+        assert ('redirect_uri='
+                'http%3A%2F%2Flocalhost%2Foauth2%2Ffoo%2Fcallback') in args
+        assert 'response_type=code' in args
+        assert 'scope=user+email' in args
+        state = None
+        for arg in args:
+            if arg.startswith('state='):
+                state = arg.split('=')[1]
+        assert state is not None
+
+        # redirect to auth provider
+        rv = self.client.post('/api/tokens/oauth2/bar',
+                              json={'code': '123', 'state': state})
+        assert rv.status_code == 404
+        rv = self.client.post('/api/tokens/oauth2/foo',
+                              json={'code': '123', 'state': 'not-the-state'})
+        assert rv.status_code == 401
+        with mock.patch('api.tokens.requests.post') as requests_post:
+            requests_post.return_value.status_code = 401
+            rv = self.client.post('/api/tokens/oauth2/foo',
+                                  json={'code': '123', 'state': state})
+            assert rv.status_code == 401
+            requests_post.assert_called_with(
+                'https://foo.com/token', data={
+                    'client_id': 'foo-id',
+                    'client_secret': 'foo-secret',
+                    'code': '123',
+                    'grant_type': 'authorization_code',
+                    'redirect_uri': 'http://localhost/oauth2/foo/callback',
+                }, headers={'Accept': 'application/json'})
+
+        # auth with authorization code (failure case)
+        with mock.patch('api.tokens.requests.post') as requests_post:
+            with mock.patch('api.tokens.requests.get') as requests_get:
+                requests_post.return_value.status_code = 200
+                requests_post.return_value.json.return_value = {
+                    'access_token': 'foo-token',
+                }
+                requests_get.return_value.status_code = 401
+                rv = self.client.post('/api/tokens/oauth2/foo',
+                                      json={'code': '123', 'state': state})
+                assert rv.status_code == 401
+                requests_post.assert_called_with(
+                    'https://foo.com/token', data={
+                        'client_id': 'foo-id',
+                        'client_secret': 'foo-secret',
+                        'code': '123',
+                        'grant_type': 'authorization_code',
+                        'redirect_uri': 'http://localhost/oauth2/foo/callback',
+                    }, headers={'Accept': 'application/json'})
+
+        # auth with authorization code (failure case)
+        with mock.patch('api.tokens.requests.post') as requests_post:
+            with mock.patch('api.tokens.requests.get') as requests_get:
+                requests_post.return_value.status_code = 200
+                requests_post.return_value.json.return_value = {
+                    'not_access_token': 'foo-token',
+                }
+                requests_get.return_value.status_code = 200
+                rv = self.client.post('/api/tokens/oauth2/foo',
+                                      json={'code': '123', 'state': state})
+                assert rv.status_code == 401
+                requests_post.assert_called_with(
+                    'https://foo.com/token', data={
+                        'client_id': 'foo-id',
+                        'client_secret': 'foo-secret',
+                        'code': '123',
+                        'grant_type': 'authorization_code',
+                        'redirect_uri': 'http://localhost/oauth2/foo/callback',
+                    }, headers={'Accept': 'application/json'})
+
+        # auth with authorization code (success case with new user)
+        with mock.patch('api.tokens.requests.post') as requests_post:
+            with mock.patch('api.tokens.requests.get') as requests_get:
+                requests_post.return_value.status_code = 200
+                requests_post.return_value.json.return_value = {
+                    'access_token': 'foo-token',
+                }
+                requests_get.return_value.status_code = 200
+                requests_get.return_value.json.return_value = {
+                    'id': 'user-id',
+                    'email': 'foo@foo.com',
+                }
+                rv = self.client.post('/api/tokens/oauth2/foo',
+                                      json={'code': '123', 'state': state})
+                assert rv.status_code == 200
+                requests_post.assert_called_with(
+                    'https://foo.com/token', data={
+                        'client_id': 'foo-id',
+                        'client_secret': 'foo-secret',
+                        'code': '123',
+                        'grant_type': 'authorization_code',
+                        'redirect_uri': 'http://localhost/oauth2/foo/callback',
+                    }, headers={'Accept': 'application/json'})
+                requests_get.assert_called_with(
+                    'https://foo.com/me', headers={
+                        'Authorization': 'Bearer foo-token',
+                        'Accept': 'application/json',
+                    })
+                access_token = rv.json['access_token']
+
+                # test the access token
+                rv = self.client.get('/api/me', headers={
+                    'Authorization': f'Bearer {access_token}'})
+                assert rv.status_code == 200
+                assert rv.json['username'] == 'foo'
+
+        # auth with authorization code (success case with existing user)
+        with mock.patch('api.tokens.requests.post') as requests_post:
+            with mock.patch('api.tokens.requests.get') as requests_get:
+                requests_post.return_value.status_code = 200
+                requests_post.return_value.json.return_value = {
+                    'access_token': 'foo-token',
+                }
+                requests_get.return_value.status_code = 200
+                requests_get.return_value.json.return_value = {
+                    'id': 'user-id',
+                    'email': 'test@example.com',
+                }
+                rv = self.client.post('/api/tokens/oauth2/foo',
+                                      json={'code': '123', 'state': state})
+                assert rv.status_code == 200
+                requests_post.assert_called_with(
+                    'https://foo.com/token', data={
+                        'client_id': 'foo-id',
+                        'client_secret': 'foo-secret',
+                        'code': '123',
+                        'grant_type': 'authorization_code',
+                        'redirect_uri': 'http://localhost/oauth2/foo/callback',
+                    }, headers={'Accept': 'application/json'})
+                requests_get.assert_called_with(
+                    'https://foo.com/me', headers={
+                        'Authorization': 'Bearer foo-token',
+                        'Accept': 'application/json',
+                    })
+                access_token = rv.json['access_token']
+
+                # test the access token
+                rv = self.client.get('/api/me', headers={
+                    'Authorization': f'Bearer {access_token}'})
+                assert rv.status_code == 200
+                assert rv.json['username'] == 'test'

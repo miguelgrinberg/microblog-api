@@ -30,6 +30,35 @@ class Config:
         'http://localhost:3000/reset'
     USE_CORS = as_bool(os.environ.get('USE_CORS') or 'yes')
     CORS_SUPPORTS_CREDENTIALS = True
+    OAUTH2_PROVIDERS = {
+        # https://developers.google.com/identity/protocols/oauth2/web-server
+        # #httprest
+        'google': {
+            'client_id': os.environ.get('GOOGLE_CLIENT_ID'),
+            'client_secret': os.environ.get('GOOGLE_CLIENT_SECRET'),
+            'authorize_url': 'https://accounts.google.com/o/oauth2/auth',
+            'access_token_url': 'https://accounts.google.com/o/oauth2/token',
+            'get_user': {
+                'url': 'https://www.googleapis.com/oauth2/v3/userinfo',
+                'email': lambda json: json['email'],
+            },
+            'scopes': ['https://www.googleapis.com/auth/userinfo.email'],
+        },
+        # https://docs.github.com/en/apps/oauth-apps/building-oauth-apps
+        # /authorizing-oauth-apps
+        'github': {
+            'client_id': os.environ.get('GITHUB_CLIENT_ID'),
+            'client_secret': os.environ.get('GITHUB_CLIENT_SECRET'),
+            'authorize_url': 'https://github.com/login/oauth/authorize',
+            'access_token_url': 'https://github.com/login/oauth/access_token',
+            'get_user': {
+                'url': 'https://api.github.com/user/emails',
+                'email': lambda json: json[0]['email'],
+            },
+            'scopes': ['user:email'],
+        },
+    }
+    OAUTH2_REDIRECT_URI = 'http://localhost:3000/oauth2/{provider}/callback'
 
     # API documentation
     APIFAIRY_TITLE = 'Microblog API'
