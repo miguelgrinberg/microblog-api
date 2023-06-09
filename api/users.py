@@ -75,6 +75,19 @@ def put(data):
     return user
 
 
+@users.route('/me', methods=['DELETE'])
+@authenticate(token_auth)
+@response(EmptySchema,
+          status_code=204,
+          description='User unfollowed successfully.')
+def delete():
+    """Remove user from server"""
+    user = token_auth.current_user()
+    db.session.execute(user.delete())
+    db.session.commit()
+    return user
+
+
 @users.route('/me/following', methods=['GET'])
 @authenticate(token_auth)
 @paginated_response(users_schema, order_by=User.username)
