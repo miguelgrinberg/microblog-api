@@ -7,7 +7,7 @@ from apifairy import authenticate, body, response, other_responses
 import requests
 
 from api.app import db
-from api.auth import basic_auth
+from api.auth import basic_auth, token_auth
 from api.email import send_email
 from api.models import User, Token
 from api.schemas import TokenSchema, PasswordResetRequestSchema, \
@@ -82,6 +82,7 @@ def refresh(args):
 
 
 @tokens.route('/tokens', methods=['DELETE'])
+@authenticate(token_auth)
 @response(EmptySchema, status_code=204, description='Token revoked')
 @other_responses({401: 'Invalid access token'})
 def revoke():
