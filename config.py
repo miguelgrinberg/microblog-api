@@ -58,7 +58,8 @@ class Config:
             'scopes': ['user:email'],
         },
     }
-    OAUTH2_REDIRECT_URI = 'http://localhost:3000/oauth2/{provider}/callback'
+    OAUTH2_REDIRECT_URI = os.environ.get('OAUTH2_REDIRECT_URI') or \
+        'http://localhost:3000/oauth2/{provider}/callback'
 
     # API documentation
     APIFAIRY_TITLE = 'Microblog API'
