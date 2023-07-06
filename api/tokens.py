@@ -108,7 +108,7 @@ def reset(args):
         reset_url = current_app.config['PASSWORD_RESET_URL'] + \
             '?token=' + reset_token
         send_email(args['email'], 'Reset Your Password', 'reset',
-                   token=reset_token, url=reset_url)
+                   username=user.username, token=reset_token, url=reset_url)
     return {}
 
 
