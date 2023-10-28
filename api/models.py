@@ -6,6 +6,7 @@ from typing import Optional
 
 from flask import current_app, url_for
 import jwt
+from alchemical import Model
 import sqlalchemy as sa
 from sqlalchemy import orm as so
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -21,13 +22,13 @@ class Updateable:
 
 followers = sa.Table(
     'followers',
-    db.Model.metadata,
+    Model.metadata,
     sa.Column('follower_id', sa.ForeignKey('users.id'), primary_key=True),
     sa.Column('followed_id', sa.ForeignKey('users.id'), primary_key=True)
 )
 
 
-class Token(db.Model):
+class Token(Model):
     __tablename__ = 'tokens'
 
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
@@ -81,7 +82,7 @@ class Token(db.Model):
             pass
 
 
-class User(Updateable, db.Model):
+class User(Updateable, Model):
     __tablename__ = 'users'
 
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
@@ -211,7 +212,7 @@ class User(Updateable, db.Model):
                 user))).one_or_none() is not None
 
 
-class Post(Updateable, db.Model):
+class Post(Updateable, Model):
     __tablename__ = 'posts'
 
     id: so.Mapped[int] = so.mapped_column(primary_key=True)

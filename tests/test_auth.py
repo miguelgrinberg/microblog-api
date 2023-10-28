@@ -85,7 +85,7 @@ class AuthTests(BaseTestCase):
         access_token = rv.json['access_token']
         refresh_token = rv.json['refresh_token']
 
-        self.client.cookie_jar.clear()
+        self.client.delete_cookie('refresh_token', path='/api/tokens')
         rv = self.client.put('/api/tokens', json={
             'access_token': access_token})
         assert rv.status_code == 401

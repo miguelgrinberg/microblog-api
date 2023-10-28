@@ -9,6 +9,7 @@ flask-marshmallow
 flask-migrate
 gunicorn
 marshmallow-sqlalchemy
+pip-tools
 pyjwt
 python-dotenv
 requests
