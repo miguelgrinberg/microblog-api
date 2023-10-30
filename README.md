@@ -63,7 +63,7 @@ pip install -r requirements.txt
 Create the database and populate it with some randomly generated data:
 
 ```bash
-flask db upgrade
+alembic upgrade head
 flask fake users 10
 flask fake posts 100
 ```

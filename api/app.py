@@ -1,6 +1,5 @@
 from flask import Flask, redirect, url_for, request
 from alchemical.flask import Alchemical
-from flask_migrate import Migrate
 from flask_marshmallow import Marshmallow
 from flask_cors import CORS
 from flask_mail import Mail
@@ -8,7 +7,6 @@ from apifairy import APIFairy
 from config import Config
 
 db = Alchemical()
-migrate = Migrate()
 ma = Marshmallow()
 cors = CORS()
 mail = Mail()
@@ -22,7 +20,6 @@ def create_app(config_class=Config):
     # extensions
     from api import models
     db.init_app(app)
-    migrate.init_app(app, db)
     ma.init_app(app)
     if app.config['USE_CORS']:  # pragma: no branch
         cors.init_app(app)
@@ -58,7 +55,7 @@ def create_app(config_class=Config):
 
     @app.after_request
     def after_request(response):
-        # Werkzeu sometimes does not flush the request body so we do it here
+        # Werkzeug sometimes does not flush the request body so we do it here
         request.get_data()
         return response
 

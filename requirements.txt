@@ -4,10 +4,10 @@
 #
 #    pip-compile requirements.in
 #
-alchemical==1.0.0
+alchemical==1.0.1
     # via -r requirements.in
 alembic==1.12.1
-    # via flask-migrate
+    # via -r requirements.in
 apifairy==1.3.0
     # via -r requirements.in
 apispec==6.3.0
@@ -36,7 +36,6 @@ flask==3.0.0
     #   flask-httpauth
     #   flask-mail
     #   flask-marshmallow
-    #   flask-migrate
     #   flask-sqlalchemy
 flask-cors==4.0.0
     # via -r requirements.in
@@ -50,10 +49,8 @@ flask-marshmallow==0.15.0
     # via
     #   -r requirements.in
     #   apifairy
-flask-migrate==4.0.5
-    # via -r requirements.in
 flask-sqlalchemy==3.1.1
-    # via flask-migrate
+    # via -r requirements.in
 greenlet==3.0.1
     # via sqlalchemy
 gunicorn==21.2.0
@@ -117,7 +114,7 @@ webargs==8.3.0
     # via apifairy
 werkzeug==3.0.1
     # via flask
-wheel==0.41.2
+wheel==0.41.3
     # via pip-tools
 
 # The following packages are considered to be unsafe in a requirements file:
