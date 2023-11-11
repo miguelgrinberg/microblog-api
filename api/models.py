@@ -90,7 +90,7 @@ class User(Updateable, Model):
         sa.String(64), index=True, unique=True)
     email: so.Mapped[str] = so.mapped_column(
         sa.String(120), index=True, unique=True)
-    password_hash: so.Mapped[Optional[str]] = so.mapped_column(sa.String(128))
+    password_hash: so.Mapped[Optional[str]] = so.mapped_column(sa.String(256))
     about_me: so.Mapped[Optional[str]] = so.mapped_column(sa.String(140))
     first_seen: so.Mapped[datetime] = so.mapped_column(default=datetime.utcnow)
     last_seen: so.Mapped[datetime] = so.mapped_column(default=datetime.utcnow)
@@ -141,7 +141,8 @@ class User(Updateable, Model):
         self.password_hash = generate_password_hash(password)
 
     def verify_password(self, password):
-        return check_password_hash(self.password_hash, password)
+        if self.password_hash:  # pragma: no branch
+            return check_password_hash(self.password_hash, password)
 
     def ping(self):
         self.last_seen = datetime.utcnow()
