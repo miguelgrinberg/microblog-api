@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from hashlib import md5
 import secrets
 from time import time
@@ -18,6 +18,9 @@ class Updateable:
     def update(self, data):
         for attr, value in data.items():
             setattr(self, attr, value)
+
+def utc_now():
+    return datetime.now(timezone.utc)
 
 
 followers = sa.Table(
@@ -49,23 +52,23 @@ class Token(Model):
 
     def generate(self):
         self.access_token = secrets.token_urlsafe()
-        self.access_expiration = datetime.utcnow() + \
+        self.access_expiration = utc_now() + \
             timedelta(minutes=current_app.config['ACCESS_TOKEN_MINUTES'])
         self.refresh_token = secrets.token_urlsafe()
-        self.refresh_expiration = datetime.utcnow() + \
+        self.refresh_expiration = utc_now() + \
             timedelta(days=current_app.config['REFRESH_TOKEN_DAYS'])
 
     def expire(self, delay=None):
         if delay is None:  # pragma: no branch
             # 5 second delay to allow simultaneous requests
             delay = 5 if not current_app.testing else 0
-        self.access_expiration = datetime.utcnow() + timedelta(seconds=delay)
-        self.refresh_expiration = datetime.utcnow() + timedelta(seconds=delay)
+        self.access_expiration = utc_now() + timedelta(seconds=delay)
+        self.refresh_expiration = utc_now() + timedelta(seconds=delay)
 
     @staticmethod
     def clean():
         """Remove any tokens that have been expired for more than a day."""
-        yesterday = datetime.utcnow() - timedelta(days=1)
+        yesterday = utc_now() - timedelta(days=1)
         db.session.execute(Token.delete().where(
             Token.refresh_expiration < yesterday))
 
@@ -92,8 +95,8 @@ class User(Updateable, Model):
         sa.String(120), index=True, unique=True)
     password_hash: so.Mapped[Optional[str]] = so.mapped_column(sa.String(256))
     about_me: so.Mapped[Optional[str]] = so.mapped_column(sa.String(140))
-    first_seen: so.Mapped[datetime] = so.mapped_column(default=datetime.utcnow)
-    last_seen: so.Mapped[datetime] = so.mapped_column(default=datetime.utcnow)
+    first_seen: so.Mapped[datetime] = so.mapped_column(default=utc_now)
+    last_seen: so.Mapped[datetime] = so.mapped_column(default=utc_now)
 
     tokens: so.WriteOnlyMapped['Token'] = so.relationship(
         back_populates='user')
@@ -145,7 +148,7 @@ class User(Updateable, Model):
             return check_password_hash(self.password_hash, password)
 
     def ping(self):
-        self.last_seen = datetime.utcnow()
+        self.last_seen = utc_now()
 
     def generate_auth_token(self):
         token = Token(user=self)
@@ -156,7 +159,7 @@ class User(Updateable, Model):
     def verify_access_token(access_token_jwt, refresh_token=None):
         token = Token.from_jwt(access_token_jwt)
         if token:
-            if token.access_expiration > datetime.utcnow():
+            if token.access_expiration > utc_now():
                 token.user.ping()
                 db.session.commit()
                 return token.user
@@ -165,7 +168,7 @@ class User(Updateable, Model):
     def verify_refresh_token(refresh_token, access_token_jwt):
         token = Token.from_jwt(access_token_jwt)
         if token and token.refresh_token == refresh_token:
-            if token.refresh_expiration > datetime.utcnow():
+            if token.refresh_expiration > utc_now():
                 return token
 
             # someone tried to refresh with an expired token
@@ -219,7 +222,7 @@ class Post(Updateable, Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     text: so.Mapped[str] = so.mapped_column(sa.String(280))
     timestamp: so.Mapped[datetime] = so.mapped_column(
-        index=True, default=datetime.utcnow)
+        index=True, default=utc_now)
     user_id: so.Mapped[int] = so.mapped_column(
         sa.ForeignKey(User.id), index=True)
 
