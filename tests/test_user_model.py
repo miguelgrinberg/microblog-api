@@ -1,7 +1,8 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 import sqlalchemy as sa
 import pytest
 from api.app import db
+from api.dates import naive_utcnow
 from api.models import User, Post
 from tests.base_test_case import BaseTestCase
 
@@ -79,7 +80,7 @@ class UserModelTests(BaseTestCase):
         db.session.add_all([u1, u2, u3, u4])
 
         # create four posts
-        now = datetime.utcnow()
+        now = naive_utcnow()
         p1 = Post(text="post from john", author=u1,
                   timestamp=now + timedelta(seconds=1))
         p2 = Post(text="post from susan", author=u2,

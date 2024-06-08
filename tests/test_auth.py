@@ -1,5 +1,6 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from unittest import mock
+from api.dates import naive_utcnow
 from tests.base_test_case import BaseTestCase, TestConfigWithAuth
 
 
@@ -50,8 +51,8 @@ class AuthTests(BaseTestCase):
         assert rv.status_code == 200
         access_token = rv.json['access_token']
 
-        with mock.patch('api.models.datetime') as dt:
-            dt.utcnow.return_value = datetime.utcnow() + timedelta(days=1)
+        with mock.patch('api.models.naive_utcnow') as now:
+            now.return_value = naive_utcnow() + timedelta(days=1)
             rv = self.client.get('/api/users', headers={
                 'Authorization': f'Bearer {access_token}'})
             assert rv.status_code == 401

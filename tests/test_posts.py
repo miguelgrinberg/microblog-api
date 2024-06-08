@@ -1,5 +1,6 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from api.app import db
+from api.dates import naive_utcnow
 from api.models import User, Post
 from tests.base_test_case import BaseTestCase
 
@@ -70,7 +71,7 @@ class PostTests(BaseTestCase):
         db.session.add(user2)
         db.session.commit()
         user1.follow(user2)
-        now = datetime.utcnow()
+        now = naive_utcnow()
         post1 = Post(text='Post 1', author=user2,
                      timestamp=now - timedelta(minutes=2))
         post2 = Post(text='Post 2', author=user1,

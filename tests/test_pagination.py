@@ -1,5 +1,6 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from api.app import db
+from api.dates import naive_utcnow
 from api.models import User, Post
 from tests.base_test_case import BaseTestCase
 
@@ -8,7 +9,7 @@ class PaginationTests(BaseTestCase):
     def setUp(self):
         super().setUp()
         user = db.session.get(User, 1)
-        tm = datetime.utcnow()
+        tm = naive_utcnow()
         for i in range(105):
             tm -= timedelta(minutes=1)
             post = Post(text=f'Post {i + 1}', author=user, timestamp=tm)
