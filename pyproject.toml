@@ -1,0 +1,38 @@
+[project]
+name = "microblog-api"
+version = "1.0"
+description = "A modern Flask API back end."
+authors = [
+    { name = "Miguel Grinberg", email = "miguel.grinberg@mgmail.com" },
+]
+readme = "README.md"
+license = { file = "LICENSE" }
+dependencies = [
+    "alchemical",
+    "alembic",
+    "apifairy",
+    "faker",
+    "flask",
+    "flask-cors",
+    "flask-httpauth",
+    "flask-mail",
+    "flask-marshmallow",
+    "flask-sqlalchemy",
+    "gunicorn",
+    "marshmallow-sqlalchemy",
+    "pyjwt",
+    "python-dotenv",
+    "requests",
+]
+
+[project.optional-dependencies]
+dev = [
+    "flake8",
+    "pytest",
+    "pytest-cov",
+    "tox",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
