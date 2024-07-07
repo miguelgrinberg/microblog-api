@@ -3,7 +3,7 @@ name = "microblog-api"
 version = "1.0"
 description = "A modern Flask API back end."
 authors = [
-    { name = "Miguel Grinberg", email = "miguel.grinberg@mgmail.com" },
+    { name = "Miguel Grinberg", email = "miguel.grinberg@gmail.com" },
 ]
 readme = "README.md"
 license = { file = "LICENSE" }
