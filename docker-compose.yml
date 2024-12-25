@@ -3,6 +3,7 @@ services:
   microblog-api:
     build: .
     image: microblog-api
+    container_name: microblog-api
     ports:
       - "${MICROBLOG_API_PORT:-5000}:5000"
     volumes:
